@@ -2,15 +2,17 @@
 #include <WebServer.h>
 #include "time.h"
 #include "niggo.h"
+#include <ESP32Servo.h>
+
 
 // ==============================
 // ==== CONFIGURAÇÕES DE PINOS ===
 // ==============================
-const uint8_t PIN_LED     = 18;
-const uint8_t PIN_BUTTON  = 19;
 const uint8_t PIN_TRIG    = 20;
 const uint8_t PIN_ECHO    = 21;
 const uint8_t PIN_BUZZER  = 22;
+Servo servoRacao;
+const int PIN_SERVO = 23;
 
 // ==============================
 // ==== VARIÁVEIS DO SISTEMA ====
@@ -71,15 +73,32 @@ void pegarHora(int &hora, int &minuto, int &segundo) {
 // ==============   MÓDULO: LED/BOTÃO   =================
 // =====================================================
 
-void atualizarLED() {
-  digitalWrite(PIN_LED, statusLED);
+long medirDistancia() {
+  // Gera pulso no TRIG
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+
+  // Lê o pulso do ECHO
+  long duracao = pulseIn(PIN_ECHO, HIGH);
+
+  // Distância em centímetros
+  long distancia = duracao * 0.034 / 2;
+
+  return distancia;
 }
 
-void LEDon() {
-  statusLED = HIGH;
-  atualizarLED();
-  server.send(200, "text/plain", "on");
-  Serial.println("LED ligado via web");
+void despejoLeveOn() {
+  Serial.println("Despejando pouca ração...");
+  servoRacao.write(80);
+  delay(300);
+  servoRacao.write(0);
+
+  server.send(200, "text/plain", "despejo Leve Ok");
+  Serial.println("Animal Alimentado!");
 }
 
 void LEDoff() {
@@ -97,10 +116,7 @@ void verificarBotao() {
   if (digitalRead(PIN_BUTTON) == LOW) {
     while (digitalRead(PIN_BUTTON) == LOW); // Espera soltar
 
-    statusLED = !statusLED;
-    atualizarLED();
-
-    Serial.println("Botão pressionado — LED alternado");
+    
   }
 }
 
@@ -119,7 +135,7 @@ void handleNotFound() {
 
 void configurarRotas() {
   server.on("/", handleRoot);
-  server.on("/on", LEDon);
+  server.on("/despejoLeve", despejoLeveOn);
   server.on("/off", LEDoff);
   server.on("/status", handleStatus);
   server.onNotFound(handleNotFound);
@@ -181,6 +197,8 @@ void rotinaAutomatica() {
 
 void setup() {
   Serial.begin(115200);
+
+  servoRacao.attach(PIN_SERVO, 500, 2400);  
 
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_BUTTON, INPUT_PULLUP);

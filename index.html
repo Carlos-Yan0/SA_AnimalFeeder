@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <title>WebServer Alimentador Automatico</title>  
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html{
+            text-align: center;
+            width: 100%;
+            height: 100%;
+        }
+        .infos{
+            display: flex;
+            justify-content: space-around;
+        }
+
+        #botoes-racao {
+            display: flex;
+            flex-wrap: wrap;
+            flex-direction: row;
+
+            width: 42rem;       /*Mude para alterar o grid */
+            height: 42rem;      /*Mude para alterar o grid */
+
+            margin: 0 auto;
+        }
+
+        .gridbox {
+            background-color: aquamarine;
+            height: 20rem;
+            width: 20rem;
+            color: white;
+            margin: 1rem 1rem 0 0;
+            border-radius: 10%;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 1rem;
+        }
+
+        .img-racao {
+            height:16rem;
+            width:18rem;
+        }
+
+    </style>
+  </head>
+  <body>
+    <h1>Alimentador automatico 2000</h1>
+
+    <div class="infos mt-4">
+        <div>
+            <h3>Quantidade atual de ração:</h3>
+            <p>87%</p>
+        </div>
+        <div>
+            <h3>Proximo horário de alimentação:</h3>
+            <P>14h</P>
+        </div>
+    </div>
+   
+    <div id="botoes-racao">
+        <div id="1" class="gridbox">
+            <div class="">
+                <img src="img/personalizado.png" alt="" class="img-racao">
+            </div>
+            <p class="opcao-racao">Ração</p>
+        </div>
+        <div id="2" class="gridbox">
+            <div class="">
+                <img src="img/personalizado.png" alt="" class="img-racao">
+            </div>
+            <p class="opcao-racao">Ração</p>
+        </div>
+        <div id="3" class="gridbox">
+            <div class="">
+                <img src="img/personalizado.png" alt="" class="img-racao">
+            </div>
+            <p class="opcao-racao">Ração</p>
+        </div>
+        <div id="4" class="gridbox">
+            <div class="">
+                <img src="img/personalizado.png" alt="" class="img-racao">
+            </div>
+            <p class="opcao-racao">Ração</p>
+        </div>
+    </div>
+        
+  </body>
+</html>

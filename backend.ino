@@ -17,7 +17,7 @@ const int PIN_SERVO = 23;
 // ==============================
 // ==== VARIÁVEIS DO SISTEMA ====
 // ==============================
-bool statusLED = LOW;
+// bool statusLED = LOW;
 bool eventoExecutado_1623 = false;   // Controle do evento diário
 
 // ==============================
@@ -91,34 +91,56 @@ long medirDistancia() {
   return distancia;
 }
 
-void despejoLeveOn() {
+void despejoLeve() {
   Serial.println("Despejando pouca ração...");
   servoRacao.write(80);
-  delay(300);
+  delay(3000);
   servoRacao.write(0);
 
   server.send(200, "text/plain", "despejo Leve Ok");
   Serial.println("Animal Alimentado!");
 }
 
-void LEDoff() {
-  statusLED = LOW;
-  atualizarLED();
-  server.send(200, "text/plain", "off");
-  Serial.println("LED desligado via web");
+void despejoMedio() {
+  Serial.println("Despejando uma quantidade consideravel de ração...");
+  servoRacao.write(80);
+  delay(5000);
+  servoRacao.write(0);
+
+  server.send(200, "text/plain", "despejo medio Ok");
+  Serial.println("Animal Alimentado!");
+}
+
+void despejoGrande() {
+  Serial.println("Despejando Muita ração...");
+  servoRacao.write(80);
+  chamarAtencao();
+  delay(8000);
+  servoRacao.write(0);
+
+  server.send(200, "text/plain", "despejo grande Ok");
+  Serial.println("Animal Alimentado!");
+}
+
+void despejoPersonalizado(int tempo){
+  Serial.println("Despejando uma quantidade personalizada de ração...");
+  servoRacao.write(80);
+  chamarAtencao();
+  delay(tempo * 1000);
+  servoRacao.write(0);
+
+  server.send(200, "text/plain", "despejo personalizado Ok");
+  Serial.println("Animal Alimentado!");
+}
+
+void chamarAtencao() {
+  // FALTA O SOM DO BUZZER
 }
 
 void handleStatus() {
-  server.send(200, "text/plain", statusLED ? "on" : "off");
+  server.send(200, "text/plain");
 }
 
-void verificarBotao() {
-  if (digitalRead(PIN_BUTTON) == LOW) {
-    while (digitalRead(PIN_BUTTON) == LOW); // Espera soltar
-
-    
-  }
-}
 
 // =====================================================
 // ==============   MÓDULO: PÁGINAS WEB   ===============
@@ -135,8 +157,10 @@ void handleNotFound() {
 
 void configurarRotas() {
   server.on("/", handleRoot);
-  server.on("/despejoLeve", despejoLeveOn);
-  server.on("/off", LEDoff);
+  server.on("/despejoLeve", despejoLeve);
+  server.on("/despejoMedio", despejoMedio);
+  server.on("/despejoGrande", despejoGrande);
+  server.on("/despejoPersonalizado", despejoPersonalizado);
   server.on("/status", handleStatus);
   server.onNotFound(handleNotFound);
 }
@@ -146,45 +170,43 @@ void configurarRotas() {
 // =====================================================
 
 // ===== Variáveis para controle do tempo =====
-unsigned long ledStartTime = 0;
-bool ledTemporizadoAtivo = false;
+// unsigned long ledStartTime = 0;
+// bool ledTemporizadoAtivo = false;
 
-void automacaoHoraria() {
-  int h, m, s;
-  pegarHora(h, m, s);
+// void automacaoHoraria() {
+//   int h, m, s;
+//   pegarHora(h, m, s);
 
-  // ===== Evento programado para 16:34 =====
-  if (h == 16 && m == 43 && !eventoExecutado_1623) {
-    Serial.println(">>> Evento das 16:34 executado!");
+//   // ===== Evento programado para 16:34 =====
+//   if (h == 16 && m == 43 && !eventoExecutado_1623) {
+//     Serial.println(">>> Evento das 16:34 executado!");
 
-    // Liga o LED
-    statusLED = HIGH;
-    atualizarLED();
-    Serial.println("LED aceso pelo evento programado por 20s");
+//     // Liga o LED
+//     statusLED = HIGH;
+//     Serial.println("LED aceso pelo evento programado por 20s");
 
-    // Inicia contagem
-    ledStartTime = millis();
-    ledTemporizadoAtivo = true;
+//     // Inicia contagem
+//     ledStartTime = millis();
+//     ledTemporizadoAtivo = true;
 
-    eventoExecutado_1623 = true; // evita repetir no mesmo minuto
-  }
+//     eventoExecutado_1623 = true; // evita repetir no mesmo minuto
+//   }
 
-  // ===== Controle do tempo do LED (20s) =====
-  if (ledTemporizadoAtivo) {
-    if (millis() - ledStartTime >= 20000) {  // 20.000 ms = 20 segundos
-      statusLED = LOW;
-      atualizarLED();
-      ledTemporizadoAtivo = false;
-      Serial.println("LED apagado após 20s");
-    }
-  }
+//   // ===== Controle do tempo do LED (20s) =====
+//   if (ledTemporizadoAtivo) {
+//     if (millis() - ledStartTime >= 20000) {  // 20.000 ms = 20 segundos
+//       statusLED = LOW;
+//       ledTemporizadoAtivo = false;
+//       Serial.println("LED apagado após 20s");
+//     }
+//   }
 
-  // ===== Reset diário =====
-  if (h == 0 && m == 0 && s == 0) {
-    eventoExecutado_1623 = false;
-    Serial.println("Eventos diários resetados.");
-  }
-}
+//   // ===== Reset diário =====
+//   if (h == 0 && m == 0 && s == 0) {
+//     eventoExecutado_1623 = false;
+//     Serial.println("Eventos diários resetados.");
+//   }
+// }
 
 
 void rotinaAutomatica() {
@@ -199,10 +221,6 @@ void setup() {
   Serial.begin(115200);
 
   servoRacao.attach(PIN_SERVO, 500, 2400);  
-
-  pinMode(PIN_LED, OUTPUT);
-  pinMode(PIN_BUTTON, INPUT_PULLUP);
-  digitalWrite(PIN_LED, LOW);
 
   configurarWiFi();
 
@@ -230,7 +248,6 @@ void setup() {
 
 void loop() {
   server.handleClient();
-  verificarBotao();
   rotinaAutomatica();
   delay(10);
 }

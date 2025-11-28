@@ -141,25 +141,25 @@
         </p>
 
         <div class="grid">
-            <div id="1" class="gridbox selecao">
+            <div id="despejoGrande" class="gridbox selecao">
                 <div class="">
                     <img src="img/full.png" alt="" class="img-racao" />
                 </div>
                 <p class="opcao-racao">Pote cheio</p>
             </div>
-            <div id="2" class="gridbox">
+            <div id="despejoMedio" class="gridbox">
                 <div class="">
                     <img src="img/full.png" alt="" class="img-racao" />
                 </div>
                 <p class="opcao-racao">Pote ideal</p>
             </div>
-            <div id="3" class="gridbox">
+            <div id="despejoLeve" class="gridbox">
                 <div class="">
                     <img src="img/full.png" alt="" class="img-racao" />
                 </div>
                 <p class="opcao-racao">Pote raso</p>
             </div>
-            <div id="4" class="gridbox">
+            <div id="despejoPersonalizado" class="gridbox">
                 <div class="">
                     <img src="img/full.png" alt="" class="img-racao" />
                 </div>
@@ -193,5 +193,31 @@
                 <p class="opcao-racao"></p>
             </div>
         </div>
+
+
+        <script>
+            
+            function enviarRequisicao(url){
+                fetch(url)
+                .then(res => res.text())
+                .then(txt => console.log("Resposta: ", txt))
+            }
+
+            const despejoLeve = document.getElementById("despejoLeve");
+            const despejoMedio = document.getElementById("despejoMedio");
+            const despejoGrande = document.getElementById("despejoGrande");
+            const despejoPersonalizado = document.getElementById("despejoPersonalizado");
+
+            let tipoDespejo;
+            despejoLeve.addEventListener('click', () => tipoDespejo = "/despejoLeve");
+            despejoMedio.addEventListener('click', () => tipoDespejo = "/despejoMedio");
+            despejoGrande.addEventListener('click', () => tipoDespejo = "/despejoGrande");
+            despejoPersonalizado.addEventListener('click', () => tipoDespejo = "/despejoPersonalizado");
+
+            //Falta o ID obvio, mas tambem um botao de despejo
+            const despejar = document.getElementById("");
+            despejar.addEventListener('click', () => enviarRequisicao(tipoDespejo));
+
+        </script>
     </body>
 </html>

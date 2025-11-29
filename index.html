@@ -232,11 +232,43 @@
             label {
                 font-size: 1.2rem;
             }
+            
+            #salvar-horarios {
+              background-color: deepskyblue;
+              box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+              border-radius: 0.5rem;
+              border-width: 0;
+              cursor: pointer;
+              display: inline-block;
+              line-height: 20px;
+              padding: 10px 12px;
+              text-align: center;
+              transition: background-color 0.2s;
+              vertical-align: baseline;
+              white-space: nowrap;
+              user-select: none;
+              -webkit-user-select: none;
+              touch-action: manipulation;
+              border: none;
+            }
+            
+            #salvar-horarios:hover {
+                background-color: white;
+                outline: 2px solid deepskyblue;
+            }
+            
+            #salvar-horarios:active {
+                background-color: deepskyblue;
+                outline: none;
+            }
+            
+            .erro {outline: 2px solid indianred;}
+
         </style>
     </head>
 
     <body>
-        <h1>Alimentador automatico 2000</h1>
+        <h1>Animal Feeder</h1>
 
         <div class="infos">
             <div id="info-porcentagem" class="div-info nivel-alto">
@@ -255,7 +287,7 @@
         </p>
 
         <div class="grid">
-            <div id="despejoGrande" class="gridbox selecao">
+            <div id="despejoGrande" class="gridbox">
                 <div class="">
                     <img src="img/full.png" alt="" class="img-racao" />
                 </div>
@@ -284,11 +316,14 @@
         <p class="body-p">
             Selecione em que horários a ração deve ser despejada para o pet.
         </p>
-
+        
+        <button type="button" id="salvar-horarios">Salvar Horários</button>
+        
         <div class="grid">
             <div class="gridbox gridbox-horario">
                 <div class="input-horarios">
                     <input
+                        id="input-hora-horario1"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -296,6 +331,7 @@
                         max="24"
                     />
                     <input
+                        id="input-minuto-horario1"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -305,7 +341,7 @@
                 </div>
                 <div class="input-check">
                     <label class="custom-checkbox">
-                        <input type="checkbox" />
+                        <input type="checkbox" id="manter-horario1" />
                         <span class="checkmark"></span>
                         Manter esse horário?
                     </label>
@@ -314,6 +350,7 @@
             <div class="gridbox gridbox-horario">
                 <div class="input-horarios">
                     <input
+                        id="input-hora-horario2"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -321,6 +358,7 @@
                         max="24"
                     />
                     <input
+                        id="input-minuto-horario2"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -330,7 +368,7 @@
                 </div>
                 <div class="input-check">
                     <label class="custom-checkbox">
-                        <input type="checkbox" />
+                        <input type="checkbox" id="manter-horario2" />
                         <span class="checkmark"></span>
                         Manter esse horário?
                     </label>
@@ -339,6 +377,7 @@
             <div class="gridbox gridbox-horario">
                 <div class="input-horarios">
                     <input
+                        id="input-hora-horario3"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -346,6 +385,7 @@
                         max="24"
                     />
                     <input
+                        id="input-minuto-horario3"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -355,7 +395,7 @@
                 </div>
                 <div class="input-check">
                     <label class="custom-checkbox">
-                        <input type="checkbox" />
+                        <input type="checkbox" id="manter-horario3" />
                         <span class="checkmark"></span>
                         Manter esse horário?
                     </label>
@@ -364,6 +404,7 @@
             <div class="gridbox gridbox-horario">
                 <div class="input-horarios">
                     <input
+                        id="input-hora-horario4"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -371,6 +412,7 @@
                         max="24"
                     />
                     <input
+                        id="input-minuto-horario4"
                         type="number"
                         maxlength="2"
                         min="00"
@@ -380,7 +422,7 @@
                 </div>
                 <div class="input-check">
                     <label class="custom-checkbox">
-                        <input type="checkbox" />
+                        <input type="checkbox" id="manter-horario4" />
                         <span class="checkmark"></span>
                         Manter esse horário?
                     </label>
@@ -389,42 +431,183 @@
         </div>
 
         <script>
-            function enviarRequisicao(url) {
-                fetch(url)
-                    .then((res) => res.text())
-                    .then((txt) => console.log("Resposta: ", txt));
-            }
-
-            const despejoLeve = document.getElementById("despejoLeve");
-            const despejoMedio = document.getElementById("despejoMedio");
+            // BOTÕES DE RAÇÃO
             const despejoGrande = document.getElementById("despejoGrande");
+            const despejoMedio = document.getElementById("despejoMedio");
+            const despejoLeve = document.getElementById("despejoLeve");
             const despejoPersonalizado = document.getElementById(
                 "despejoPersonalizado",
             );
 
-            let tipoDespejo;
-            despejoLeve.addEventListener(
-                "click",
-                () => (tipoDespejo = "/despejoLeve"),
-            );
-            despejoMedio.addEventListener(
-                "click",
-                () => (tipoDespejo = "/despejoMedio"),
-            );
-            despejoGrande.addEventListener(
-                "click",
-                () => (tipoDespejo = "/despejoGrande"),
-            );
-            despejoPersonalizado.addEventListener(
-                "click",
-                () => (tipoDespejo = "/despejoPersonalizado"),
-            );
+            let nivelDespejo = 2; // Por padrão fica no nivel medio
 
-            //Falta o ID obvio, mas tambem um botao de despejo
-            const despejar = document.getElementById("");
-            despejar.addEventListener("click", () =>
-                enviarRequisicao(tipoDespejo),
+            despejoGrande.addEventListener("click", () => {
+                nivelDespejo = 3;
+                salvarDados();
+            });
+
+            despejoMedio.addEventListener("click", () => {
+                nivelDespejo = 2;
+                salvarDados();
+            });
+
+            despejoLeve.addEventListener("click", () => {
+                nivelDespejo = 1;
+                salvarDados();
+            });
+
+            // Horário 1
+            const inputHora1 = document.getElementById("input-hora-horario1");
+            const inputMinuto1 = document.getElementById(
+                "input-minuto-horario1",
             );
+            const check1 = document.getElementById("manter-horario1");
+            let horario1 = [00, 00, false];
+
+            // Horário 2
+            const inputHora2 = document.getElementById("input-hora-horario2");
+            const inputMinuto2 = document.getElementById(
+                "input-minuto-horario2",
+            );
+            const check2 = document.getElementById("manter-horario2");
+            let horario2 = [00, 00, false];
+
+            // Horário 3
+            const inputHora3 = document.getElementById("input-hora-horario3");
+            const inputMinuto3 = document.getElementById(
+                "input-minuto-horario3",
+            );
+            const check3 = document.getElementById("manter-horario3");
+            let horario3 = [00, 00, false];
+
+            // Horário 4
+            const inputHora4 = document.getElementById("input-hora-horario4");
+            let inputMinuto4 = document.getElementById(
+                "input-minuto-horario4",
+            );
+            const check4 = document.getElementById("manter-horario4");
+            let horario4 = [00, 00, false];
+            
+            const buttonSalvarHorarios = document.getElementById("salvar-horarios")
+            
+            buttonSalvarHorarios.addEventListener('click', salvarHorarios)
+
+            function salvarHorarios() {
+            
+                const valido1 = validarHorario(inputHora1, inputMinuto1);
+                const valido2 = validarHorario(inputHora2, inputMinuto2);
+                const valido3 = validarHorario(inputHora3, inputMinuto3);
+                const valido4 = validarHorario(inputHora4, inputMinuto4);
+            
+                // Se qualquer horário for inválido → impede salvar
+                if (!valido1 || !valido2 || !valido3 || !valido4) {
+                    alert("Ops! Tem horário inválido. Corrija antes de salvar.");
+                    return;
+                }
+            
+                horario1 = [inputHora1.value, inputMinuto1.value, check1.checked];
+                horario2 = [inputHora2.value, inputMinuto2.value, check2.checked];
+                horario3 = [inputHora3.value, inputMinuto3.value, check3.checked];
+                horario4 = [inputHora4.value, inputMinuto4.value, check4.checked];
+            
+                salvarDados();
+            }
+
+
+            function salvarDados() {
+                const dados = {
+                    nivelDespejo: nivelDespejo,
+                    rotina: [horario1, horario2, horario3, horario4],
+                };
+
+                // Baixa o arquivo data.json para testar rapidamente
+                const dadosJSON = JSON.stringify(dados, null, 2);
+
+                const blob = new Blob([dadosJSON], {
+                    type: "application/json",
+                });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "data.json";
+                a.click();
+
+                // Envio de dados via POST
+
+                // fetch('/salvar', {
+                //   method: 'POST',
+                //   headers: {"Content-Type:", "application/json"},
+                //   body: JSON.stringify(dados)
+                //  })
+                //  .then(r => r.text())
+                //  .then(resp => alert("Response: " + resp))
+                //  .catch(error => console.error(error));
+            }
+            
+            
+            // SELEÇÕES DINAMICAS 
+            
+            const potes = document.querySelectorAll("#despejoGrande, #despejoMedio, #despejoLeve, #despejoPersonalizado");
+
+            potes.forEach(pote => {
+                pote.addEventListener("click", () => {
+                    potes.forEach(p => p.classList.remove("selecao"));
+                    pote.classList.add("selecao");
+                });
+            });
+            
+            
+            const horariosBox = document.querySelectorAll(".gridbox-horario");
+            
+            horariosBox.forEach(box => {
+                const checkbox = box.querySelector("input[type='checkbox']");
+            
+                checkbox.addEventListener("change", () => {
+                    if (checkbox.checked) {
+                        box.classList.add("selecao");
+                    } else {
+                        box.classList.remove("selecao");
+                    }
+                });
+            });
+            
+            function validarHorario(inputHora, inputMinuto) {
+                const hora = Number(inputHora.value);
+                const minuto = Number(inputMinuto.value);
+            
+                let valido = true;
+            
+                // Validação da HORA
+                if (
+                    inputHora.value === "" ||
+                    isNaN(hora) ||
+                    hora < 0 ||
+                    hora > 23
+                ) {
+                    valido = false;
+                    inputHora.classList.add("erro");
+                } else {
+                    inputHora.classList.remove("erro");
+                }
+            
+                // Validação do MINUTO
+                if (
+                    inputMinuto.value === "" ||
+                    isNaN(minuto) ||
+                    minuto < 0 ||
+                    minuto > 59
+                ) {
+                    valido = false;
+                    inputMinuto.classList.add("erro");
+                } else {
+                    inputMinuto.classList.remove("erro");
+                }
+            
+                return valido;
+            }
+
+
         </script>
     </body>
 </html>

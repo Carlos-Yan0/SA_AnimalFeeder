@@ -45,7 +45,7 @@ struct Rotina {
 
 struct Config {
     unsigned short int nivel_despejo;
-    Rotina rotina[4];
+    Rotina rotinas[4];
 };
 
 struct Rotina rotinas[4];
@@ -175,10 +175,10 @@ void handleDespejar() {
 
 
 void handleJSON() {
-    println("Recebendo JSON via POST");
+    Serial.println("Recebendo JSON via POST");
 
     String jsonString = server.arg("plain");
-    println(jsonString);
+    Serial.println(jsonString);
 
     StaticJsonDocument<512> doc;
     DeserializationError erro = deserializeJson(doc, jsonString);

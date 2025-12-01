@@ -1,77 +1,91 @@
 #include <WiFi.h>
 #include <WebServer.h>
-#include "time.h"
-#include "niggo.h"
 #include <ESP32Servo.h>
+#include "index.h"
+#include <ArduinoJson.h>
+#include "time.h"
 
 
 // ==============================
-// ==== CONFIGURAÇÕES DE PINOS ===
+// === CONFIGURAÇÕES DE PINOS ===
 // ==============================
 const uint8_t PIN_TRIG    = 20;
 const uint8_t PIN_ECHO    = 21;
 const uint8_t PIN_BUZZER  = 22;
-Servo servoRacao;
-const int PIN_SERVO = 23;
+const uint8_t PIN_SERVO   = 23;
+Servo servo;
 
 // ==============================
-// ==== VARIÁVEIS DO SISTEMA ====
+// === NTP PARA HORARIO ATUAL ===
 // ==============================
-// bool statusLED = LOW;
-bool eventoExecutado_1623 = false;   // Controle do evento diário
+const char* ntpServer = "pool.ntp.org";
+const long gmtOffset_sec = -10800;  // GMT -3
+short int ultimoMinutoExecutado[4] = { -1, -1, -1, -1 };
 
-// ==============================
-// ==== CREDENCIAIS WI-FI =======
-// ==============================
-const char* ssid     = "YAN";
-const char* password = "123456esp";
+void printLocalDateTime() {
+  struct tm timeInfo;
+  if (!getLocalTime(&timeInfo)) {
+    Serial.println("Não foi possível obter o tempo.");
+    return;
+  }
+
+  char timeStringBuff[64];
+  strftime(timeStringBuff, sizeof(timeStringBuff), "%A, %B %d %Y %H:%M:%S", &timeInfo);
+  Serial.println(timeStringBuff);
+}
+
+// =====================================
+// === STRUCTS DE CONFIGS DO SISTEMA ===
+// =====================================
+struct Rotina {
+    unsigned short int hora;
+    unsigned short int minuto;
+    bool ativo;
+};
+
+struct Config {
+    unsigned short int nivel_despejo;
+    Rotina rotina[4];
+};
+
+struct Rotina rotinas[4];
+struct Config sConfig;
+
+// ===============
+// ==== WI-FI ====
+// ===============
+
+const char* SSID     = "ESP";
+const char* PASSWORD = "123456esp";
 
 WebServer server(80);
 
-// =====================================================
-// ===============   MÓDULO: WI-FI   ====================
-// =====================================================
-
 void configurarWiFi() {
-  WiFi.mode(WIFI_STA); 
+  WiFi.mode(WIFI_STA);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
 
   WiFi.disconnect(true);
   delay(1000);
 
-  Serial.println("Conectando ao WiFi...");
-  WiFi.begin(ssid, password);
+  Serial.print("\nConectando ao WiFi...");
+  WiFi.begin(SSID, PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
-    delay(400);
+    delay(1000);
     Serial.print(".");
   }
 
   Serial.println("\nConectado!");
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
+
+  configTime(gmtOffset_sec, 0, ntpServer);
+  printLocalDateTime();
 }
 
-// ===================================================
-// ==============   CONFIG: TEMPO   =================
-// ===================================================
-const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = -3 * 3600;   // UTC-3 para Brasil
-const int daylightOffset_sec = 0;
-
-// Função modular para pegar hora atual
-void pegarHora(int &hora, int &minuto, int &segundo) {
-  struct tm timeinfo;
-  if (getLocalTime(&timeinfo)) {
-    hora = timeinfo.tm_hour;
-    minuto = timeinfo.tm_min;
-    segundo = timeinfo.tm_sec;
-  }
-}
-
-// =====================================================
-// ==============   MÓDULO: LED/BOTÃO   =================
-// =====================================================
+// ======================================================
+// ===   CONFIGURAÇÕES DAS AÇÕES DE CADA COMPONENTE   ===
+// ======================================================
 
 long medirDistancia() {
   // Gera pulso no TRIG
@@ -91,150 +105,152 @@ long medirDistancia() {
   return distancia;
 }
 
-void despejoLeve() {
-  Serial.println("Despejando pouca ração...");
-  servoRacao.write(80);
-  delay(3000);
-  servoRacao.write(0);
 
-  server.send(200, "text/plain", "despejo Leve Ok");
-  Serial.println("Animal Alimentado!");
+void despejarRacao () {
+    Serial.print("Despejando ração. Nível de despejo: ");
+    Serial.println(sConfig.nivel_despejo);
+
+    somChamarAtencao();
+    servo.write(170);
+    delay(sConfig.nivel_despejo*1000);
+    servo.write(0);
 }
 
-void despejoMedio() {
-  Serial.println("Despejando uma quantidade consideravel de ração...");
-  servoRacao.write(80);
-  delay(5000);
-  servoRacao.write(0);
 
-  server.send(200, "text/plain", "despejo medio Ok");
-  Serial.println("Animal Alimentado!");
+void somChamarAtencao() {
+    for (uint8_t i = 0; i < 2; i++){
+      tone(PIN_BUZZER, 300);
+      delay(100);
+      noTone(PIN_BUZZER);
+      delay(100);
+
+      tone(PIN_BUZZER, 500);
+      delay(100);
+      noTone(PIN_BUZZER);
+      delay(100);
+
+      tone(PIN_BUZZER, 600);
+      delay(100);
+      noTone(PIN_BUZZER);
+      delay(100);
+
+      tone(PIN_BUZZER, 400);
+      delay(100);
+      noTone(PIN_BUZZER);
+      delay(100);
+
+      delay(800);
+    }
+    delay(1200);
 }
 
-void despejoGrande() {
-  Serial.println("Despejando Muita ração...");
-  servoRacao.write(80);
-  chamarAtencao();
-  delay(8000);
-  servoRacao.write(0);
-
-  server.send(200, "text/plain", "despejo grande Ok");
-  Serial.println("Animal Alimentado!");
-}
-
-void despejoPersonalizado(int tempo){
-  Serial.println("Despejando uma quantidade personalizada de ração...");
-  servoRacao.write(80);
-  chamarAtencao();
-  delay(tempo * 1000);
-  servoRacao.write(0);
-
-  server.send(200, "text/plain", "despejo personalizado Ok");
-  Serial.println("Animal Alimentado!");
-}
-
-void chamarAtencao() {
-  // FALTA O SOM DO BUZZER
-}
 
 void handleStatus() {
   server.send(200, "text/plain");
 }
 
-
-// =====================================================
-// ==============   MÓDULO: PÁGINAS WEB   ===============
-// =====================================================
+// ===============================
+// ===   MÓDULO: PÁGINAS WEB   ===
+// ===============================
 
 void handleRoot() {
   Serial.println("Acessando página principal");
   server.send(200, "text/html", index_html);
 }
 
+
 void handleNotFound() {
   server.send(404, "text/plain", "Not Found");
 }
 
+
+void handleDespejar() {
+    if (!sConfig.nivel_despejo) {
+        server.send(500, "text/plain", "É necessário selecionar uma opção antes do despejo imediato.");
+        return;
+    }
+
+    despejarRacao();
+}
+
+
+void handleJSON() {
+    println("Recebendo JSON via POST");
+
+    String jsonString = server.arg("plain");
+    println(jsonString);
+
+    StaticJsonDocument<512> doc;
+    DeserializationError erro = deserializeJson(doc, jsonString);
+
+    if (erro) {
+        Serial.print("Falha ao ler JSON: ");
+        Serial.println(erro.f_str());
+        server.send(500, "text/plain", "Erro ao processar JSON");
+        return;
+    }
+
+    sConfig.nivel_despejo = doc["nivelDespejo"];
+
+    for (int i = 0; i < 4; i++) {
+        rotinas[i].hora   = doc["rotina"][i][0];
+        rotinas[i].minuto = doc["rotina"][i][1];
+        rotinas[i].ativo  = doc["rotina"][i][2];
+
+        sConfig.rotinas[i] = rotinas[i];
+    }
+
+    server.send(200, "text/plain", "Ok!");
+}
+
+
 void configurarRotas() {
   server.on("/", handleRoot);
-  server.on("/despejoLeve", despejoLeve);
-  server.on("/despejoMedio", despejoMedio);
-  server.on("/despejoGrande", despejoGrande);
-  server.on("/despejoPersonalizado", despejoPersonalizado);
-  server.on("/status", handleStatus);
+  server.on("/despejar", handleDespejar);
+  server.on("/salvar", handleJSON);
   server.onNotFound(handleNotFound);
 }
 
-// =====================================================
-// ==============   MÓDULO: AUTOMAÇÕES   ===============
-// =====================================================
+// ==============
+// === ROTINA ===
+// ==============
 
-// ===== Variáveis para controle do tempo =====
-// unsigned long ledStartTime = 0;
-// bool ledTemporizadoAtivo = false;
+void verificarRotinas() {
+    struct tm timeInfo;
+    getLocalTime(&timeInfo);
 
-// void automacaoHoraria() {
-//   int h, m, s;
-//   pegarHora(h, m, s);
+    int horaAtual = timeInfo.tm_hour;
+    int minutoAtual = timeInfo.tm_min;
 
-//   // ===== Evento programado para 16:34 =====
-//   if (h == 16 && m == 43 && !eventoExecutado_1623) {
-//     Serial.println(">>> Evento das 16:34 executado!");
+    for (int i = 0; i < 4; i++) {
+        Rotina r = sConfig.rotinas[i];
 
-//     // Liga o LED
-//     statusLED = HIGH;
-//     Serial.println("LED aceso pelo evento programado por 20s");
+        if (!r.ativo) continue;
 
-//     // Inicia contagem
-//     ledStartTime = millis();
-//     ledTemporizadoAtivo = true;
+        if (r.hora == horaAtual && r.minuto == minutoAtual) {
 
-//     eventoExecutado_1623 = true; // evita repetir no mesmo minuto
-//   }
+            if (ultimoMinutoExecutado[i] == minutoAtual) continue;
 
-//   // ===== Controle do tempo do LED (20s) =====
-//   if (ledTemporizadoAtivo) {
-//     if (millis() - ledStartTime >= 20000) {  // 20.000 ms = 20 segundos
-//       statusLED = LOW;
-//       ledTemporizadoAtivo = false;
-//       Serial.println("LED apagado após 20s");
-//     }
-//   }
+            Serial.printf("Executando rotina %d\n", i);
+            despejarRacao();
 
-//   // ===== Reset diário =====
-//   if (h == 0 && m == 0 && s == 0) {
-//     eventoExecutado_1623 = false;
-//     Serial.println("Eventos diários resetados.");
-//   }
-// }
-
-
-void rotinaAutomatica() {
-  automacaoHoraria();
+            ultimoMinutoExecutado[i] = minutoAtual;
+        }
+    }
 }
 
-// =====================================================
-// ===================== SETUP =========================
-// =====================================================
+// =============
+// === SETUP ===
+// =============
 
 void setup() {
   Serial.begin(115200);
 
-  servoRacao.attach(PIN_SERVO, 500, 2400);  
+  servo.attach(PIN_SERVO, 544, 2400);
+  servo.write(0);
 
   configurarWiFi();
-
-  // Ativa NTP
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-  Serial.println("Sincronizando horário...");
   delay(2000);
-
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-      Serial.println("Falha ao obter hora via NTP");
-  } else {
-      Serial.println(&timeinfo, "Hora atual: %H:%M:%S");
-  }
 
   configurarRotas();
   server.begin();
@@ -242,12 +258,12 @@ void setup() {
   Serial.println("Servidor Web iniciado!");
 }
 
-// =====================================================
-// ====================== LOOP =========================
-// =====================================================
+// ============
+// === LOOP ===
+// ============
 
 void loop() {
   server.handleClient();
-  rotinaAutomatica();
+  verificarRotinas();
   delay(10);
 }

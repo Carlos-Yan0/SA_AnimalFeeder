@@ -107,6 +107,10 @@ long medirDistancia() {
 
 
 void despejarRacao () {
+  if(!sConfig.nivel_despejo || sConfig.nivel_despejo == 0){
+    Serial.println("Despejo negado, insira um nivel de despejo");
+  }
+  else{
     Serial.print("Despejando ração. Nível de despejo: ");
     Serial.println(sConfig.nivel_despejo);
 
@@ -114,6 +118,7 @@ void despejarRacao () {
     servo.write(170);
     delay(sConfig.nivel_despejo*1000);
     servo.write(0);
+  }
 }
 
 
@@ -143,12 +148,6 @@ void somChamarAtencao() {
     }
     delay(1200);
 }
-
-
-void handleStatus() {
-  server.send(200, "text/plain");
-}
-
 // ===============================
 // ===   MÓDULO: PÁGINAS WEB   ===
 // ===============================
@@ -165,11 +164,15 @@ void handleNotFound() {
 
 
 void handleDespejar() {
-    if (!sConfig.nivel_despejo) {
+    if (!sConfig.nivel_despejo || sConfig.nivel_despejo == 0) {
         server.send(500, "text/plain", "É necessário selecionar uma opção antes do despejo imediato.");
         return;
     }
 
+    despejarRacao();
+}
+void handleDespejoManual(){
+    Serial.println("Despejo manual solicitado...");
     despejarRacao();
 }
 
@@ -190,15 +193,18 @@ void handleJSON() {
         return;
     }
 
+    if (doc.containsKey("nivelDespejo")) {
     sConfig.nivel_despejo = doc["nivelDespejo"];
+}
 
+if (doc.containsKey("rotina")) {
     for (int i = 0; i < 4; i++) {
         rotinas[i].hora   = doc["rotina"][i][0];
         rotinas[i].minuto = doc["rotina"][i][1];
         rotinas[i].ativo  = doc["rotina"][i][2];
-
         sConfig.rotinas[i] = rotinas[i];
     }
+}
 
     server.send(200, "text/plain", "Ok!");
 }
@@ -208,6 +214,7 @@ void configurarRotas() {
   server.on("/", handleRoot);
   server.on("/despejar", handleDespejar);
   server.on("/salvar", handleJSON);
+  server.on("/despejoManual", handleDespejoManual);
   server.onNotFound(handleNotFound);
 }
 

@@ -439,18 +439,52 @@
         .d-flex{
             display: flex;
         }
+        .justify-content-start{
+            justify-content: start;
+        }
+        .w-100{
+            width: 100%;
+        }
+        .h-75{
+            height: 75%;
+        }
+        .h-25{
+            height: 25%;
+        }
+        #leave{
+            height: 40px;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+        .input{
+            font-size: 1.6rem;
+            gap: 0.4rem;
+            outline: none;
+            outline: 3px solid mediumaquamarine;
+            text-align: center;
+            border-radius: 1rem;
+            border: none;
+            box-shadow: inset rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+        #submitDespejoPersonalizado{
+            margin-top: 20px;
+        }
     </style>
 </head>
 
 <body>
 
     <dialog id="dialogDespejoPersonalizado" class="justify-content-center align-items-center flex-column">
-        <div>
-            <button id="Leave">Sair</button>
+        <div class="d-flex justify-content-start w-100 h-25">
+            <button id="leave" class="btn">Sair</button>
         </div>
-        <div class="d-flex flex-column">
-            <h3>Insira quanto tempo o despejo ocorrera</h3>
-            <input type="text" id="tempoDespejoPersonalizado">
+        <br>
+        <div class="d-flex flex-column align-items-center h-75 w-100">
+            <h5>Insira quanto tempo o despejo durará</h5>
+            <br>
+                <input type="number" min="1" step="1" id="tempoDespejoPersonalizado" class="input">
+                <button class="btn" id="submitDespejoPersonalizado">Submit</button>
+            
         </div>
     </dialog>
     <h1>Animal Feeder</h1>
@@ -482,19 +516,19 @@
             <div class="">
                 <img src="img/full.png" alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote cheio</p>
+            <p class="opcao-racao">Pote cheio(8s)</p>
         </div>
         <div id="despejoMedio" class="gridbox">
             <div class="">
                 <img src="img/full.png" alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote ideal</p>
+            <p class="opcao-racao">Pote ideal(5s)</p>
         </div>
         <div id="despejoLeve" class="gridbox">
             <div class="">
                 <img src="img/full.png" alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote raso</p>
+            <p class="opcao-racao">Pote raso(2s)</p>
         </div>
         <div id="despejoPersonalizado" class="gridbox">
             <div class="">
@@ -576,8 +610,9 @@
         const despejoPersonalizado = document.getElementById(
             "despejoPersonalizado",
         );
-
-        let nivelDespejo = 2; // Por padrão fica no nivel medio
+        
+            let nivelDespejo = 5; // Por padrão fica no nivel medio
+            salvarDados();
 
         despejoPersonalizado.addEventListener("click", () => {
             const dialogDespejoPersonalizado = document.getElementById("dialogDespejoPersonalizado");
@@ -585,18 +620,26 @@
             dialogDespejoPersonalizado.style.display = "flex"
         });
 
+        const inputDespejoPersonalizado = document.getElementById('tempoDespejoPersonalizado');
+        const submitDespejoPersonalizado = document.getElementById('submitDespejoPersonalizado');
+        submitDespejoPersonalizado.addEventListener('click', () => {
+            nivelDespejo = inputDespejoPersonalizado.value;
+            salvarDados();
+            inputDespejoPersonalizado.value = '';
+        });
+
         despejoGrande.addEventListener("click", () => {
-            nivelDespejo = 3;
+            nivelDespejo = 8;
             salvarDados();
         });
 
         despejoMedio.addEventListener("click", () => {
-            nivelDespejo = 2;
+            nivelDespejo = 5;
             salvarDados();
         });
 
         despejoLeve.addEventListener("click", () => {
-            nivelDespejo = 1;
+            nivelDespejo = 2;
             salvarDados();
         });
 
@@ -750,13 +793,23 @@
 
             return valido;
         }
-        const leave = document.getElementById('Leave');
+        const leave = document.getElementById('leave');
 
         leave.addEventListener('click', () =>{
             dialogDespejoPersonalizado.close();
             dialogDespejoPersonalizado.style.display = "none"
         });
-
+        let despejoManual = document.getElementById('despejoManual');
+        despejoManual.addEventListener('click', () => {
+            fetch('/despejoManual', {
+                method: 'POST',
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(despejoManual)
+            })
+                .then(r => r.text())
+                .then(resp => alert("Response: " + resp))
+                .catch(error => console.error(error));
+        });
 
 
     </script>

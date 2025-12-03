@@ -9,8 +9,8 @@
 // ==============================
 // === CONFIGURAÇÕES DE PINOS ===
 // ==============================
-const uint8_t PIN_TRIG    = 20;
-const uint8_t PIN_ECHO    = 21;
+const uint8_t PIN_TRIG    = 5;
+const uint8_t PIN_ECHO    = 6;
 const uint8_t PIN_BUZZER  = 22;
 const uint8_t PIN_SERVO   = 23;
 Servo servo;
@@ -98,9 +98,13 @@ long medirDistancia() {
 
   // Lê o pulso do ECHO
   long duracao = pulseIn(PIN_ECHO, HIGH);
+  Serial.print("Duração:");
+  Serial.println(duracao);
 
   // Distância em centímetros
-  long distancia = duracao * 0.034 / 2;
+  long distancia = duracao / 58;
+  Serial.print("Distância:");
+  Serial.println(distancia);
 
   return distancia;
 }
@@ -163,14 +167,63 @@ void handleNotFound() {
 }
 
 
-void handleDespejar() {
-    if (!sConfig.nivel_despejo || sConfig.nivel_despejo == 0) {
-        server.send(500, "text/plain", "É necessário selecionar uma opção antes do despejo imediato.");
-        return;
+String pegarProximaRotina() {
+    struct tm timeInfo;
+    getLocalTime(&timeInfo);
+
+    int horaAtual = timeInfo.tm_hour;
+    int minutoAtual = timeInfo.tm_min;
+
+    int menorDiferenca = 1440; // minutos em 24h
+    String proxima = "Nenhuma programada";
+
+    for (int i = 0; i < 4; i++) {
+        Rotina r = sConfig.rotinas[i];
+        if (!r.ativo) continue;
+
+        int minutoAtualTotal = horaAtual * 60 + minutoAtual;
+        int minutoRotinaTotal = r.hora * 60 + r.minuto;
+
+        int diff = minutoRotinaTotal - minutoAtualTotal;
+        if (diff < 0) diff += 1440;
+
+        if (diff < menorDiferenca) {
+            menorDiferenca = diff;
+
+            char buffer[6];
+            sprintf(buffer, "%02d:%02d", r.hora, r.minuto);
+            proxima = buffer;
+        }
     }
 
-    despejarRacao();
+    return proxima;
 }
+
+
+void handleStatus() {
+    StaticJsonDocument<300> doc;
+
+    doc["distancia"] = medirDistancia();
+    doc["nivelDespejo"] = sConfig.nivel_despejo;
+
+    // Envia a próxima alimentação
+    doc["proximaRefeicao"] = pegarProximaRotina();
+
+    JsonArray rot = doc.createNestedArray("rotinas");
+    for (int i = 0; i < 4; i++) {
+        JsonObject obj = rot.createNestedObject();
+        obj["hora"]   = sConfig.rotinas[i].hora;
+        obj["minuto"] = sConfig.rotinas[i].minuto;
+        obj["ativo"]  = sConfig.rotinas[i].ativo;
+    }
+
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    server.send(200, "application/json", jsonStr);
+}
+
+
 void handleDespejoManual(){
     Serial.println("Despejo manual solicitado...");
     despejarRacao();
@@ -212,8 +265,8 @@ if (doc.containsKey("rotina")) {
 
 void configurarRotas() {
   server.on("/", handleRoot);
-  server.on("/despejar", handleDespejar);
   server.on("/salvar", handleJSON);
+  server.on("/status", handleStatus);
   server.on("/despejoManual", handleDespejoManual);
   server.onNotFound(handleNotFound);
 }
@@ -261,6 +314,9 @@ void setup() {
 
   configurarRotas();
   server.begin();
+
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
 
   Serial.println("Servidor Web iniciado!");
 }

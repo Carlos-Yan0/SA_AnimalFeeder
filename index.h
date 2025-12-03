@@ -494,12 +494,12 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     <div class="infos">
         <div id="info-porcentagem" class="div-info nivel-alto">
-            <p><span id="status-racao">87%</span> de ração restante</p>
+            <p><span id="status-racao"></span> de ração restante</p>
         </div>
         <div id="info-refeicao" class="div-info">
             <p>
-                Próxima referição programada para
-                <span id="status-racao">14h</span>
+                Próxima refeição programada para
+                <span id="status-horario"></span>
             </p>
         </div>
     </div>
@@ -515,25 +515,25 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="grid">
         <div id="despejoGrande" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/full.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote cheio(8s)</p>
         </div>
         <div id="despejoMedio" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/medium.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote ideal(5s)</p>
         </div>
         <div id="despejoLeve" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/low.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote raso(2s)</p>
         </div>
         <div id="despejoPersonalizado" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/personalizado.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Quantia personalizada</p>
         </div>
@@ -701,24 +701,11 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
 
-        function salvarDados() {
+        async function salvarDados() {
             const dados = {
                 nivelDespejo: nivelDespejo,
                 rotina: [horario1, horario2, horario3, horario4],
             };
-
-            // Baixa o arquivo data.json para testar rapidamente
-            // const dadosJSON = JSON.stringify(dados, null, 2);
-
-            // const blob = new Blob([dadosJSON], {
-            //     type: "application/json",
-            // });
-            // const url = URL.createObjectURL(blob);
-
-            // const a = document.createElement("a");
-            // a.href = url;
-            // a.download = "data.json";
-            // a.click();
 
             // Envio de dados via POST
 
@@ -728,9 +715,28 @@ const char index_html[] PROGMEM = R"rawliteral(
                 body: JSON.stringify(dados)
             })
                 .then(r => r.text())
-                .then(resp => alert("Response: " + resp))
+                .then(resp => console.log("Response: " + resp))
                 .catch(error => console.error(error));
         }
+
+        async function atualizarDados() {
+          try {
+              const resposta = await fetch('/status');
+              const dados = await resposta.json();
+
+              console.log("JSON recebido:", dados);
+
+              document.getElementById("status-racao").innerText = parseInt(100 - (dados.distancia / 28 * 100)) + "%";
+              document.getElementById("status-horario").innerText = dados.proximaRefeicao;
+              
+
+          } catch (erro) {
+            console.error("Erro ao buscar dados:", erro);
+          }
+        }
+
+        setInterval(atualizarDados, 2000);
+
 
         // SELEÇÕES DINAMICAS 
 

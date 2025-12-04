@@ -493,12 +493,12 @@
 
     <div class="infos">
         <div id="info-porcentagem" class="div-info nivel-alto">
-            <p><span id="status-racao">87%</span> de ração restante</p>
+            <p><span id="status-racao"></span> de ração restante</p>
         </div>
         <div id="info-refeicao" class="div-info">
             <p>
-                Próxima referição programada para
-                <span id="status-racao">14h</span>
+                Próxima refeição programada para
+                <span id="status-horario"></span>
             </p>
         </div>
     </div>
@@ -514,25 +514,25 @@
     <div class="grid">
         <div id="despejoGrande" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/full.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote cheio(8s)</p>
         </div>
         <div id="despejoMedio" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/medium.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote ideal(5s)</p>
         </div>
         <div id="despejoLeve" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/low.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Pote raso(2s)</p>
         </div>
         <div id="despejoPersonalizado" class="gridbox">
             <div class="">
-                <img src="img/full.png" alt="" class="img-racao" />
+                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/personalizado.png?raw=true" alt="" class="img-racao" />
             </div>
             <p class="opcao-racao">Quantia personalizada</p>
         </div>
@@ -603,215 +603,237 @@
     </div>
 
     <script>
-        // BOTÕES DE RAÇÃO
-        const despejoGrande = document.getElementById("despejoGrande");
-        const despejoMedio = document.getElementById("despejoMedio");
-        const despejoLeve = document.getElementById("despejoLeve");
-        const despejoPersonalizado = document.getElementById(
-            "despejoPersonalizado",
+      // BOTÕES DE RAÇÃO
+      const despejoGrande = document.getElementById("despejoGrande");
+      const despejoMedio = document.getElementById("despejoMedio");
+      const despejoLeve = document.getElementById("despejoLeve");
+      const despejoPersonalizado = document.getElementById("despejoPersonalizado");
+      
+      let nivelDespejo = 5; // Por padrão fica no nivel medio
+      
+      despejoPersonalizado.addEventListener("click", () => {
+        const dialogDespejoPersonalizado = document.getElementById(
+          "dialogDespejoPersonalizado",
         );
-        
-            let nivelDespejo = 5; // Por padrão fica no nivel medio
-            salvarDados();
-
-        despejoPersonalizado.addEventListener("click", () => {
-            const dialogDespejoPersonalizado = document.getElementById("dialogDespejoPersonalizado");
-            dialogDespejoPersonalizado.showModal();
-            dialogDespejoPersonalizado.style.display = "flex"
-        });
-
-        const inputDespejoPersonalizado = document.getElementById('tempoDespejoPersonalizado');
-        const submitDespejoPersonalizado = document.getElementById('submitDespejoPersonalizado');
-        submitDespejoPersonalizado.addEventListener('click', () => {
-            nivelDespejo = inputDespejoPersonalizado.value;
-            salvarDados();
-            inputDespejoPersonalizado.value = '';
-        });
-
-        despejoGrande.addEventListener("click", () => {
-            nivelDespejo = 8;
-            salvarDados();
-        });
-
-        despejoMedio.addEventListener("click", () => {
-            nivelDespejo = 5;
-            salvarDados();
-        });
-
-        despejoLeve.addEventListener("click", () => {
-            nivelDespejo = 2;
-            salvarDados();
-        });
-
-        // Horário 1
-        const inputHora1 = document.getElementById("input-hora-horario1");
-        const inputMinuto1 = document.getElementById(
-            "input-minuto-horario1",
+        dialogDespejoPersonalizado.showModal();
+        dialogDespejoPersonalizado.style.display = "flex";
+      });
+      
+      const inputDespejoPersonalizado = document.getElementById(
+        "tempoDespejoPersonalizado",
+      );
+      const submitDespejoPersonalizado = document.getElementById(
+        "submitDespejoPersonalizado",
+      );
+      submitDespejoPersonalizado.addEventListener("click", () => {
+        nivelDespejo = inputDespejoPersonalizado.value;
+        salvarDados();
+        inputDespejoPersonalizado.value = "";
+      });
+      
+      despejoGrande.addEventListener("click", () => {
+        nivelDespejo = 8;
+        salvarDados();
+      });
+      
+      despejoMedio.addEventListener("click", () => {
+        nivelDespejo = 5;
+        salvarDados();
+      });
+      
+      despejoLeve.addEventListener("click", () => {
+        nivelDespejo = 2;
+        salvarDados();
+      });
+      
+      const horarios = [
+        {
+          inputHora: document.getElementById("input-hora-horario1"),
+          inputMinuto: document.getElementById("input-minuto-horario1"),
+          check: document.getElementById("manter-horario1"),
+          valores: [0, 0, false],
+        },
+        {
+          inputHora: document.getElementById("input-hora-horario2"),
+          inputMinuto: document.getElementById("input-minuto-horario2"),
+          check: document.getElementById("manter-horario2"),
+          valores: [0, 0, false],
+        },
+        {
+          inputHora: document.getElementById("input-hora-horario3"),
+          inputMinuto: document.getElementById("input-minuto-horario3"),
+          check: document.getElementById("manter-horario3"),
+          valores: [0, 0, false],
+        },
+        {
+          inputHora: document.getElementById("input-hora-horario4"),
+          inputMinuto: document.getElementById("input-minuto-horario4"),
+          check: document.getElementById("manter-horario4"),
+          valores: [0, 0, false],
+        },
+      ];
+      
+      const buttonSalvarHorarios = document.getElementById("salvar-horarios");
+      
+      buttonSalvarHorarios.addEventListener("click", salvarHorarios);
+      
+      function salvarHorarios() {
+        // Validação de todos os horários via loop
+        const todosValidos = horarios.every((h) =>
+          validarHorario(h.inputHora, h.inputMinuto),
         );
-        const check1 = document.getElementById("manter-horario1");
-        let horario1 = [0, 0, false];
-
-        // Horário 2
-        const inputHora2 = document.getElementById("input-hora-horario2");
-        const inputMinuto2 = document.getElementById(
-            "input-minuto-horario2",
-        );
-        const check2 = document.getElementById("manter-horario2");
-        let horario2 = [0, 0, false];
-
-        // Horário 3
-        const inputHora3 = document.getElementById("input-hora-horario3");
-        const inputMinuto3 = document.getElementById(
-            "input-minuto-horario3",
-        );
-        const check3 = document.getElementById("manter-horario3");
-        let horario3 = [0, 0, false];
-
-        // Horário 4
-        const inputHora4 = document.getElementById("input-hora-horario4");
-        const inputMinuto4 = document.getElementById(
-            "input-minuto-horario4",
-        );
-        const check4 = document.getElementById("manter-horario4");
-        let horario4 = [0, 0, false];
-
-        const buttonSalvarHorarios = document.getElementById("salvar-horarios")
-
-        buttonSalvarHorarios.addEventListener('click', salvarHorarios)
-
-        function salvarHorarios() {
-
-            const valido1 = validarHorario(inputHora1, inputMinuto1);
-            const valido2 = validarHorario(inputHora2, inputMinuto2);
-            const valido3 = validarHorario(inputHora3, inputMinuto3);
-            const valido4 = validarHorario(inputHora4, inputMinuto4);
-
-            // Se qualquer horário for inválido → impede salvar
-            if (!valido1 || !valido2 || !valido3 || !valido4) {
-                alert("Ops! Tem horário inválido. Corrija antes de salvar.");
-                return;
-            }
-
-            horario1 = [inputHora1.value, inputMinuto1.value, check1.checked];
-            horario2 = [inputHora2.value, inputMinuto2.value, check2.checked];
-            horario3 = [inputHora3.value, inputMinuto3.value, check3.checked];
-            horario4 = [inputHora4.value, inputMinuto4.value, check4.checked];
-
-            salvarDados();
+      
+        if (!todosValidos) {
+          alert("Ops! Tem horário inválido. Corrija antes de salvar.");
+          return;
         }
-
-
-        function salvarDados() {
-            const dados = {
-                nivelDespejo: nivelDespejo,
-                rotina: [horario1, horario2, horario3, horario4],
-            };
-
-            // Baixa o arquivo data.json para testar rapidamente
-            // const dadosJSON = JSON.stringify(dados, null, 2);
-
-            // const blob = new Blob([dadosJSON], {
-            //     type: "application/json",
-            // });
-            // const url = URL.createObjectURL(blob);
-
-            // const a = document.createElement("a");
-            // a.href = url;
-            // a.download = "data.json";
-            // a.click();
-
-            // Envio de dados via POST
-
-            fetch('/salvar', {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dados)
-            })
-                .then(r => r.text())
-                .then(resp => alert("Response: " + resp))
-                .catch(error => console.error(error));
+      
+        // Atualizando valores de cada horário
+        horarios.forEach((h) => {
+          h.valores = [h.inputHora.value, h.inputMinuto.value, h.check.checked];
+        });
+      
+        salvarDados();
+      }
+      
+      async function salvarDados() {
+        const dados = {
+          nivelDespejo: nivelDespejo,
+          rotina: [horario1, horario2, horario3, horario4],
+        };
+      
+        // Envio de dados via POST
+      
+        fetch("/salvar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(dados),
+        })
+          .then((r) => r.text())
+          .then((resp) => console.log("Response: " + resp))
+          .catch((error) => console.error(error));
+      }
+      
+      async function atualizarDados() {
+        try {
+          const resposta = await fetch("/status");
+          const dados = await resposta.json();
+      
+          console.log("JSON recebido:", dados);
+      
+          atualizarInformacoes(dados);
+        } catch (erro) {
+          console.error("Erro ao buscar dados:", erro);
         }
-
-        // SELEÇÕES DINAMICAS 
-
-        const potes = document.querySelectorAll("#despejoGrande, #despejoMedio, #despejoLeve, #despejoPersonalizado");
-
-        potes.forEach(pote => {
-            pote.addEventListener("click", () => {
-                potes.forEach(p => p.classList.remove("selecao"));
-                pote.classList.add("selecao");
-            });
+      }
+      
+      function atualizarInformacoes(dados) {
+        document.getElementById("status-racao").innerText =
+          parseInt(100 - (dados.distancia / 28) * 100) + "%";
+        document.getElementById("status-horario").innerText = dados.proximaRefeicao;
+      
+        dados.rotinas.forEach((rotina, i) => {
+          horarios[i].inputHora.value = rotina.hora;
+          horarios[i].inputMinuto.value = rotina.minuto;
+          horarios[i].check.checked = rotina.ativo;
+      
+          const box = horarios[i].inputHora.closest(".gridbox-horario");
+      
+          if (rotina.ativo) {
+            box.classList.add("selecao");
+          } else {
+            box.classList.remove("selecao");
+          }
         });
-
-
-        const horariosBox = document.querySelectorAll(".gridbox-horario");
-
-        horariosBox.forEach(box => {
-            const checkbox = box.querySelector("input[type='checkbox']");
-
-            checkbox.addEventListener("change", () => {
-                if (checkbox.checked) {
-                    box.classList.add("selecao");
-                } else {
-                    box.classList.remove("selecao");
-                }
-            });
-        });
-
-
-        function validarHorario(inputHora, inputMinuto) {
-            const hora = Number(inputHora.value);
-            const minuto = Number(inputMinuto.value);
-
-            let valido = true;
-
-            // Limpa erros anteriores
-            inputHora.classList.remove("erro");
-            inputMinuto.classList.remove("erro");
-
-            // Valida hora
-            if (
-                inputHora.value === "" ||
-                isNaN(hora) ||
-                hora < 0 ||
-                hora > 23
-            ) {
-                inputHora.classList.add("erro");
-                valido = false;
-            }
-
-            // Valida minuto
-            if (
-                inputMinuto.value === "" ||
-                isNaN(minuto) ||
-                minuto < 0 ||
-                minuto > 59
-            ) {
-                inputMinuto.classList.add("erro");
-                valido = false;
-            }
-
-            return valido;
+      
+        switch (dados.nivelDespejo) {
+          case 2:
+            despejoLeve.classList.add("selecao");
+            break;
+          case 5:
+            despejoMedio.classList.add("selecao");
+            break;
+          case 8:
+            despejoGrande.classList.add("selecao");
+            break;
+          default:
+            despejoPersonalizado.classList.add("selecao");
         }
-        const leave = document.getElementById('leave');
-
-        leave.addEventListener('click', () =>{
-            dialogDespejoPersonalizado.close();
-            dialogDespejoPersonalizado.style.display = "none"
+      }
+      
+      Window.onload = atualizarDados();
+      setInterval(atualizarDados, 2000);
+      
+      let despejoManual = document.getElementById("despejoManual");
+      
+      despejoManual.addEventListener("click", () => {
+        fetch("/despejoManual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(despejoManual),
+        })
+          .then((r) => r.text())
+          .then((resp) => alert("Response: " + resp))
+          .catch((error) => console.error(error));
+      });
+      
+      // SELEÇÕES DINAMICAS
+      
+      const potes = document.querySelectorAll(
+        "#despejoGrande, #despejoMedio, #despejoLeve, #despejoPersonalizado",
+      );
+      
+      potes.forEach((pote) => {
+        pote.addEventListener("click", () => {
+          potes.forEach((p) => p.classList.remove("selecao"));
+          pote.classList.add("selecao");
         });
-        let despejoManual = document.getElementById('despejoManual');
-        despejoManual.addEventListener('click', () => {
-            fetch('/despejoManual', {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(despejoManual)
-            })
-                .then(r => r.text())
-                .then(resp => alert("Response: " + resp))
-                .catch(error => console.error(error));
+      });
+      
+      const horariosBox = document.querySelectorAll(".gridbox-horario");
+      
+      horariosBox.forEach((box) => {
+        const checkbox = box.querySelector("input[type='checkbox']");
+      
+        checkbox.addEventListener("change", () => {
+          if (checkbox.checked) {
+            box.classList.add("selecao");
+          } else {
+            box.classList.remove("selecao");
+          }
         });
-
-
+      });
+      
+      function validarHorario(inputHora, inputMinuto) {
+        const hora = Number(inputHora.value);
+        const minuto = Number(inputMinuto.value);
+      
+        let valido = true;
+      
+        // Limpa erros anteriores
+        inputHora.classList.remove("erro");
+        inputMinuto.classList.remove("erro");
+      
+        // Valida hora
+        if (inputHora.value === "" || isNaN(hora) || hora < 0 || hora > 23) {
+          inputHora.classList.add("erro");
+          valido = false;
+        }
+      
+        // Valida minuto
+        if (inputMinuto.value === "" || isNaN(minuto) || minuto < 0 || minuto > 59) {
+          inputMinuto.classList.add("erro");
+          valido = false;
+        }
+      
+        return valido;
+      }
+      const leave = document.getElementById("leave");
+      
+      leave.addEventListener("click", () => {
+        dialogDespejoPersonalizado.close();
+        dialogDespejoPersonalizado.style.display = "none";
+      });
     </script>
 </body>
 

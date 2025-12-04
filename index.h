@@ -1,771 +1,811 @@
 const char index_html[] PROGMEM = R"rawliteral(
     <!doctype html>
-<html>
+    <html>
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
-    <title>WebServer Alimentador Automatico</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+        <title>WebServer Alimentador Automatico</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-        }
-
-        body,
-        html {
-            text-align: center;
-            width: 100%;
-            height: 100%;
-        }
-
-        body {
-            background-color: #ededed;
-        }
-
-        .infos {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width: 100%;
-            padding: 1rem;
-            max-width: 80%;
-            margin: 0 auto;
-        }
-
-        .div-info {
-            padding: 0.5rem;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            border-radius: 1rem;
-            box-shadow:
-                0px 1px 1px rgba(3, 7, 18, 0.02),
-                0px 5px 4px rgba(3, 7, 18, 0.03),
-                0px 12px 9px rgba(3, 7, 18, 0.05),
-                0px 20px 15px rgba(3, 7, 18, 0.06),
-                0px 32px 24px rgba(3, 7, 18, 0.08);
-        }
-
-        .div-info p {
-            margin: 0;
-        }
-
-        #info-refeicao {
-            background-color: lightskyblue;
-        }
-
-        .grid {
-            display: flex;
-            flex-wrap: wrap;
-            flex-direction: row;
-
-            width: 44rem;
-            /*Mude para alterar o grid */
-            height: 44rem;
-            /*Mude para alterar o grid */
-
-            margin: 0 auto;
-        }
-
-        .body-p {
-            background-color: white;
-            margin: 1rem 0;
-            padding: 2rem 0;
-        }
-
-        .gridbox {
-            background-color: white;
-            box-shadow:
-                0px 1px 1px rgba(3, 7, 18, 0.02),
-                0px 5px 4px rgba(3, 7, 18, 0.03),
-                0px 12px 9px rgba(3, 7, 18, 0.05),
-                0px 20px 15px rgba(3, 7, 18, 0.06),
-                0px 32px 24px rgba(3, 7, 18, 0.08);
-
-            height: 20rem;
-            width: 20rem;
-            color: black;
-            margin: 1rem;
-            border-radius: 1rem;
-
-            display: flex;
-            flex-direction: column;
-
-            padding: 1rem;
-            transition: ease-in-out 0.1s;
-
-            border: 3px solid transparent;
-        }
-
-        .gridbox:hover {
-            transform: scale(1.02);
-            border-color: aquamarine;
-        }
-
-        .img-racao {
-            height: 16rem;
-            width: 16rem;
-        }
-
-        .selecao {
-            border-color: mediumaquamarine;
-        }
-
-        /*--------------------------------------*
-            |NIVEIS DE RAÇÃO BASEADOS NA PORCENTAGEM|
-            *--------------------------------------*/
-
-        /* +70% de ração */
-        .nivel-alto {
-            background-color: aquamarine;
-        }
-
-        /* entre 30% e 70% de ração */
-        .nivel-medio {
-            background-color: lightyellow;
-        }
-
-        /* - que 30% de ração */
-        .nivel-baixo {
-            background-color: indianred;
-        }
-
-        #status-racao {
-            font-size: 2rem;
-        }
-
-        .input-horarios {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            flex: 7;
-            gap: 1rem;
-        }
-
-        .input-horarios input {
-            text-align: center;
-            flex: 4;
-            border-radius: 1rem;
-            font-size: 3rem;
-            border: none;
-            box-shadow: inset rgba(0, 0, 0, 0.24) 0px 3px 8px;
-        }
-
-        .separador {
-            flex: 2;
-            font-size: 5rem;
-            font-weight: lighter;
-            display: flex;
-            flex: 5;
-            align-items: center;
-            /* centraliza vertical */
-            justify-content: center;
-            /* centraliza horizontal se quiser */
-            height: 100%;
-            /* ou defina uma altura fixa, tipo 50px */
-        }
-
-        .input-horarios input:focus {
-            outline: none;
-            outline: 3px solid mediumaquamarine;
-        }
-
-        /*------------------------------------*
-            |REMOVE SCROLLS DOS INPUT[TYPE=NUMBER]|
-            *------------------------------------*/
-
-        /* Chrome, Safari, Edge, Opera */
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        /* Firefox */
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
-
-        .input-check {
-            flex: 3;
-            padding: 1rem;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-        }
-
-        .custom-checkbox input[type="checkbox"] {
-            display: none;
-        }
-
-        .custom-checkbox .checkmark {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-color: #eee;
-            border: 2px solid #ccc;
-            border-radius: 4px;
-            margin-right: 8px;
-            vertical-align: middle;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .custom-checkbox input:checked+.checkmark::after {
-            content: "";
-            position: absolute;
-            left: 5px;
-            top: 1px;
-            width: 6px;
-            height: 12px;
-            border: solid #333;
-            border-width: 0 2px 2px 0;
-            transform: rotate(45deg);
-        }
-
-        .custom-checkbox:hover .checkmark {
-            background-color: #ddd;
-        }
-
-        label {
-            font-size: 1.2rem;
-        }
-
-        #salvar-horarios {
-            background-color: deepskyblue;
-            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-            border-radius: 0.5rem;
-            border-width: 0;
-            cursor: pointer;
-            display: inline-block;
-            line-height: 20px;
-            padding: 10px 12px;
-            text-align: center;
-            transition: background-color 0.2s;
-            vertical-align: baseline;
-            white-space: nowrap;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            border: none;
-        }
-
-        #salvar-horarios:hover {
-            background-color: white;
-            outline: 2px solid deepskyblue;
-        }
-
-        #salvar-horarios:active {
-            background-color: deepskyblue;
-            outline: none;
-        }
-
-        .erro {
-            outline: 2px solid indianred;
-        }
-
-        /* ==========================
-               MEDIA QUERY: CELULARES
-               ========================== */
-        @media (max-width: 600px) {
-
-            /* Geral */
-            .infos {
-                max-width: 95%;
-                padding: 0.6rem;
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
             }
 
-            h1 {
-                font-size: 1.4rem;
-                margin: 0.8rem 0;
-            }
-
-            .body-p {
-                padding: 1rem 0;
-                font-size: 0.95rem;
-            }
-
-            /* Grid principal: empilha em 1 coluna e reduz dimensões */
-            .grid {
+            body,
+            html {
+                text-align: center;
                 width: 100%;
-                height: auto;
-                gap: 0.5rem;
+                height: 100%;
+            }
+
+            body {
+                background-color: #ededed;
+            }
+
+            .infos {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+                padding: 1rem;
+                max-width: 80%;
+                margin: 0 auto;
+            }
+
+            .div-info {
                 padding: 0.5rem;
-                justify-content: center;
-            }
-
-            .gridbox {
-                width: calc(100% - 2rem);
-                max-width: 420px;
-                height: auto;
-                padding: 0.8rem;
-                margin: 0.6rem auto;
+                display: flex;
+                flex-direction: row;
                 align-items: center;
-            }
-
-            .img-racao {
-                width: 10rem;
-                height: 10rem;
-            }
-
-            /* textos e status mais compactos */
-            #status-racao {
-                font-size: 1.2rem;
+                justify-content: center;
+                border-radius: 1rem;
+                box-shadow:
+                    0px 1px 1px rgba(3, 7, 18, 0.02),
+                    0px 5px 4px rgba(3, 7, 18, 0.03),
+                    0px 12px 9px rgba(3, 7, 18, 0.05),
+                    0px 20px 15px rgba(3, 7, 18, 0.06),
+                    0px 32px 24px rgba(3, 7, 18, 0.08);
             }
 
             .div-info p {
-                font-size: 0.95rem;
+                margin: 0;
             }
 
-            /* Inputs de horário ficam lado a lado com menos espaço */
-            .input-horarios {
-                gap: 0.4rem;
+            #info-refeicao {
+                background-color: lightskyblue;
             }
 
-            .input-horarios input {
-                font-size: 1.6rem;
-                padding: 0.4rem;
-            }
-
-            .input-check {
-                padding: 0.6rem;
-            }
-
-            label {
-                font-size: 1rem;
-            }
-
-            /* Botão salvar maior e com margem */
-            #salvar-horarios {
-                padding: 10px 18px;
-                font-size: 1rem;
-                margin: 0.5rem auto;
-                display: block;
-            }
-
-            /* Evita hover transform exagerado em touch */
-            .gridbox:hover {
-                transform: none;
-            }
-
-            /* Checkbox maior para toque */
-            .custom-checkbox .checkmark {
-                width: 26px;
-                height: 26px;
-            }
-        }
-
-        /* Ajustes para tablets pequenos (entre 601px e 900px) */
-        @media (min-width: 601px) and (max-width: 900px) {
             .grid {
-                width: 90%;
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: row;
+
+                width: 44rem;
+                /*Mude para alterar o grid */
+                height: 44rem;
+                /*Mude para alterar o grid */
+
+                margin: 0 auto;
+            }
+
+            .body-p {
+                background-color: white;
+                margin: 1rem 0;
+                padding: 2rem 0;
             }
 
             .gridbox {
-                width: 45%;
-                height: auto;
+                background-color: white;
+                box-shadow:
+                    0px 1px 1px rgba(3, 7, 18, 0.02),
+                    0px 5px 4px rgba(3, 7, 18, 0.03),
+                    0px 12px 9px rgba(3, 7, 18, 0.05),
+                    0px 20px 15px rgba(3, 7, 18, 0.06),
+                    0px 32px 24px rgba(3, 7, 18, 0.08);
+
+                height: 20rem;
+                width: 20rem;
+                color: black;
+                margin: 1rem;
+                border-radius: 1rem;
+
+                display: flex;
+                flex-direction: column;
+
+                padding: 1rem;
+                transition: ease-in-out 0.1s;
+
+                border: 3px solid transparent;
+            }
+
+            .gridbox:hover {
+                transform: scale(1.02);
+                border-color: aquamarine;
             }
 
             .img-racao {
-                width: 12rem;
-                height: 12rem;
+                height: 16rem;
+                width: 16rem;
+            }
+
+            .selecao {
+                border-color: mediumaquamarine;
+            }
+
+            /*--------------------------------------*
+                |NIVEIS DE RAÇÃO BASEADOS NA PORCENTAGEM|
+                *--------------------------------------*/
+
+            /* +70% de ração */
+            .nivel-alto {
+                background-color: aquamarine;
+            }
+
+            /* entre 30% e 70% de ração */
+            .nivel-medio {
+                background-color: lightyellow;
+            }
+
+            /* - que 30% de ração */
+            .nivel-baixo {
+                background-color: indianred;
+            }
+
+            #status-racao {
+                font-size: 2rem;
+            }
+
+            .input-horarios {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                flex: 7;
+                gap: 1rem;
             }
 
             .input-horarios input {
-                font-size: 2rem;
+                text-align: center;
+                flex: 4;
+                border-radius: 1rem;
+                font-size: 3rem;
+                border: none;
+                box-shadow: inset rgba(0, 0, 0, 0.24) 0px 3px 8px;
             }
-        }
 
-        .d-flex {
-            display: flex;
-        }
+            .separador {
+                flex: 2;
+                font-size: 5rem;
+                font-weight: lighter;
+                display: flex;
+                flex: 5;
+                align-items: center;
+                /* centraliza vertical */
+                justify-content: center;
+                /* centraliza horizontal se quiser */
+                height: 100%;
+                /* ou defina uma altura fixa, tipo 50px */
+            }
 
-        .btn {
-            background-color: deepskyblue;
-            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-            border-radius: 0.5rem;
-            border-width: 0;
-            cursor: pointer;
-            display: inline-block;
-            line-height: 20px;
-            padding: 10px 12px;
-            text-align: center;
-            transition: background-color 0.2s;
-            vertical-align: baseline;
-            white-space: nowrap;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            border: none;
-        }
+            .input-horarios input:focus {
+                outline: none;
+                outline: 3px solid mediumaquamarine;
+            }
 
-        .btn:hover {
-            background-color: white;
-            outline: 2px solid deepskyblue;
-        }
+            /*------------------------------------*
+                |REMOVE SCROLLS DOS INPUT[TYPE=NUMBER]|
+                *------------------------------------*/
 
-        .btn:active {
-            background-color: deepskyblue;
-            outline: none;
-        }
+            /* Chrome, Safari, Edge, Opera */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
 
-        .justify-content-center {
-            justify-content: center;
-        }
+            /* Firefox */
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
 
-        dialog {
-            width: 60%;
-            height: 60%;
-            position: absolute;
-            transform: translate(-50%, -50%);
-            top: 50%;
-            left: 50%;
-            border: none;
-            border-radius: 1rem;
-        }
-        .flex-column{
-            flex-direction: column;
-        }
-        .align-items-center {
-            align-items: center;
-        }
-        #tempoDespejoPersonalizado{
-            width: 50%;
-        }
-        .d-flex{
-            display: flex;
-        }
-        .justify-content-start{
-            justify-content: start;
-        }
-        .w-100{
-            width: 100%;
-        }
-        .h-75{
-            height: 75%;
-        }
-        .h-25{
-            height: 25%;
-        }
-        #leave{
-            height: 40px;
-            margin-left: 10px;
-            margin-top: 10px;
-        }
-        .input{
-            font-size: 1.6rem;
-            gap: 0.4rem;
-            outline: none;
-            outline: 3px solid mediumaquamarine;
-            text-align: center;
-            border-radius: 1rem;
-            border: none;
-            box-shadow: inset rgba(0, 0, 0, 0.24) 0px 3px 8px;
-        }
-        #submitDespejoPersonalizado{
-            margin-top: 20px;
-        }
-    </style>
-</head>
+            .input-check {
+                flex: 3;
+                padding: 1rem;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
 
-<body>
+            .custom-checkbox input[type="checkbox"] {
+                display: none;
+            }
 
-    <dialog id="dialogDespejoPersonalizado" class="justify-content-center align-items-center flex-column">
-        <div class="d-flex justify-content-start w-100 h-25">
-            <button id="leave" class="btn">Sair</button>
-        </div>
-        <br>
-        <div class="d-flex flex-column align-items-center h-75 w-100">
-            <h5>Insira quanto tempo o despejo durará</h5>
+            .custom-checkbox .checkmark {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                background-color: #eee;
+                border: 2px solid #ccc;
+                border-radius: 4px;
+                margin-right: 8px;
+                vertical-align: middle;
+                position: relative;
+                cursor: pointer;
+            }
+
+            .custom-checkbox input:checked+.checkmark::after {
+                content: "";
+                position: absolute;
+                left: 5px;
+                top: 1px;
+                width: 6px;
+                height: 12px;
+                border: solid #333;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg);
+            }
+
+            .custom-checkbox:hover .checkmark {
+                background-color: #ddd;
+            }
+
+            label {
+                font-size: 1.2rem;
+            }
+
+            #salvar-horarios {
+                background-color: deepskyblue;
+                box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+                border-radius: 0.5rem;
+                border-width: 0;
+                cursor: pointer;
+                display: inline-block;
+                line-height: 20px;
+                padding: 10px 12px;
+                text-align: center;
+                transition: background-color 0.2s;
+                vertical-align: baseline;
+                white-space: nowrap;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+                border: none;
+            }
+
+            #salvar-horarios:hover {
+                background-color: white;
+                outline: 2px solid deepskyblue;
+            }
+
+            #salvar-horarios:active {
+                background-color: deepskyblue;
+                outline: none;
+            }
+
+            .erro {
+                outline: 2px solid indianred;
+            }
+
+            /* ==========================
+                   MEDIA QUERY: CELULARES
+                   ========================== */
+            @media (max-width: 600px) {
+
+                /* Geral */
+                .infos {
+                    max-width: 95%;
+                    padding: 0.6rem;
+                }
+
+                h1 {
+                    font-size: 1.4rem;
+                    margin: 0.8rem 0;
+                }
+
+                .body-p {
+                    padding: 1rem 0;
+                    font-size: 0.95rem;
+                }
+
+                /* Grid principal: empilha em 1 coluna e reduz dimensões */
+                .grid {
+                    width: 100%;
+                    height: auto;
+                    gap: 0.5rem;
+                    padding: 0.5rem;
+                    justify-content: center;
+                }
+
+                .gridbox {
+                    width: calc(100% - 2rem);
+                    max-width: 420px;
+                    height: auto;
+                    padding: 0.8rem;
+                    margin: 0.6rem auto;
+                    align-items: center;
+                }
+
+                .img-racao {
+                    width: 10rem;
+                    height: 10rem;
+                }
+
+                /* textos e status mais compactos */
+                #status-racao {
+                    font-size: 1.2rem;
+                }
+
+                .div-info p {
+                    font-size: 0.95rem;
+                }
+
+                /* Inputs de horário ficam lado a lado com menos espaço */
+                .input-horarios {
+                    gap: 0.4rem;
+                }
+
+                .input-horarios input {
+                    font-size: 1.6rem;
+                    padding: 0.4rem;
+                }
+
+                .input-check {
+                    padding: 0.6rem;
+                }
+
+                label {
+                    font-size: 1rem;
+                }
+
+                /* Botão salvar maior e com margem */
+                #salvar-horarios {
+                    padding: 10px 18px;
+                    font-size: 1rem;
+                    margin: 0.5rem auto;
+                    display: block;
+                }
+
+                /* Evita hover transform exagerado em touch */
+                .gridbox:hover {
+                    transform: none;
+                }
+
+                /* Checkbox maior para toque */
+                .custom-checkbox .checkmark {
+                    width: 26px;
+                    height: 26px;
+                }
+            }
+
+            /* Ajustes para tablets pequenos (entre 601px e 900px) */
+            @media (min-width: 601px) and (max-width: 900px) {
+                .grid {
+                    width: 90%;
+                }
+
+                .gridbox {
+                    width: 45%;
+                    height: auto;
+                }
+
+                .img-racao {
+                    width: 12rem;
+                    height: 12rem;
+                }
+
+                .input-horarios input {
+                    font-size: 2rem;
+                }
+            }
+
+            .d-flex {
+                display: flex;
+            }
+
+            .btn {
+                background-color: deepskyblue;
+                box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+                border-radius: 0.5rem;
+                border-width: 0;
+                cursor: pointer;
+                display: inline-block;
+                line-height: 20px;
+                padding: 10px 12px;
+                text-align: center;
+                transition: background-color 0.2s;
+                vertical-align: baseline;
+                white-space: nowrap;
+                user-select: none;
+                -webkit-user-select: none;
+                touch-action: manipulation;
+                border: none;
+            }
+
+            .btn:hover {
+                background-color: white;
+                outline: 2px solid deepskyblue;
+            }
+
+            .btn:active {
+                background-color: deepskyblue;
+                outline: none;
+            }
+
+            .justify-content-center {
+                justify-content: center;
+            }
+
+            dialog {
+                width: 60%;
+                height: 60%;
+                position: absolute;
+                transform: translate(-50%, -50%);
+                top: 50%;
+                left: 50%;
+                border: none;
+                border-radius: 1rem;
+            }
+            .flex-column{
+                flex-direction: column;
+            }
+            .align-items-center {
+                align-items: center;
+            }
+            #tempoDespejoPersonalizado{
+                width: 50%;
+            }
+            .d-flex{
+                display: flex;
+            }
+            .justify-content-start{
+                justify-content: start;
+            }
+            .w-100{
+                width: 100%;
+            }
+            .h-75{
+                height: 75%;
+            }
+            .h-25{
+                height: 25%;
+            }
+            #leave{
+                height: 40px;
+                margin-left: 10px;
+                margin-top: 10px;
+            }
+            .input{
+                font-size: 1.6rem;
+                gap: 0.4rem;
+                outline: none;
+                outline: 3px solid mediumaquamarine;
+                text-align: center;
+                border-radius: 1rem;
+                border: none;
+                box-shadow: inset rgba(0, 0, 0, 0.24) 0px 3px 8px;
+            }
+            #submitDespejoPersonalizado{
+                margin-top: 20px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <dialog id="dialogDespejoPersonalizado" class="justify-content-center align-items-center flex-column">
+            <div class="d-flex justify-content-start w-100 h-25">
+                <button id="leave" class="btn">Sair</button>
+            </div>
             <br>
-                <input type="number" min="1" step="1" id="tempoDespejoPersonalizado" class="input">
-                <button class="btn" id="submitDespejoPersonalizado">Submit</button>
-            
-        </div>
-    </dialog>
-    <h1>Animal Feeder</h1>
+            <div class="d-flex flex-column align-items-center h-75 w-100">
+                <h5>Insira quanto tempo o despejo durará</h5>
+                <br>
+                    <input type="number" min="1" step="1" id="tempoDespejoPersonalizado" class="input">
+                    <button class="btn" id="submitDespejoPersonalizado">Submit</button>
 
-
-
-    <div class="infos">
-        <div id="info-porcentagem" class="div-info nivel-alto">
-            <p><span id="status-racao"></span> de ração restante</p>
-        </div>
-        <div id="info-refeicao" class="div-info">
-            <p>
-                Próxima refeição programada para
-                <span id="status-horario"></span>
-            </p>
-        </div>
-    </div>
-
-    <p class="body-p">
-        Selecione quanta ração deve ser despejada no pote do pet.
-    </p>
-
-    <div class="d-flex justify-content-center">
-        <button type="button" class="btn" id="despejoManual">Alimentar Agora</button>
-    </div>
-
-    <div class="grid">
-        <div id="despejoGrande" class="gridbox">
-            <div class="">
-                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/full.png?raw=true" alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote cheio(8s)</p>
-        </div>
-        <div id="despejoMedio" class="gridbox">
-            <div class="">
-                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/medium.png?raw=true" alt="" class="img-racao" />
-            </div>
-            <p class="opcao-racao">Pote ideal(5s)</p>
-        </div>
-        <div id="despejoLeve" class="gridbox">
-            <div class="">
-                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/low.png?raw=true" alt="" class="img-racao" />
-            </div>
-            <p class="opcao-racao">Pote raso(2s)</p>
-        </div>
-        <div id="despejoPersonalizado" class="gridbox">
-            <div class="">
-                <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/personalizado.png?raw=true" alt="" class="img-racao" />
-            </div>
-            <p class="opcao-racao">Quantia personalizada</p>
-        </div>
-    </div>
-
-    <p class="body-p">
-        Selecione em que horários a ração deve ser despejada para o pet.
-    </p>
-
-    <div class="d-flex justify-content-center">
-        <button type="button" id="salvar-horarios">Salvar Horários</button>
-    </div>
+        </dialog>
+        <h1>Animal Feeder</h1>
 
 
-    <div class="grid">
-        <div class="gridbox gridbox-horario">
-            <div class="input-horarios">
-                <input id="input-hora-horario1" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
-                <input id="input-minuto-horario1" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+
+        <div class="infos">
+            <div id="info-porcentagem" class="div-info nivel-alto">
+                <p><span id="status-racao"></span> de ração restante</p>
             </div>
-            <div class="input-check">
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="manter-horario1" />
-                    <span class="checkmark"></span>
-                    Manter esse horário?
-                </label>
+            <div id="info-refeicao" class="div-info">
+                <p>
+                    Próxima refeição programada para
+                    <span id="status-horario"></span>
+                </p>
             </div>
         </div>
-        <div class="gridbox gridbox-horario">
-            <div class="input-horarios">
-                <input id="input-hora-horario2" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
-                <input id="input-minuto-horario2" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+
+        <p class="body-p">
+            Selecione quanta ração deve ser despejada no pote do pet.
+        </p>
+
+        <div class="d-flex justify-content-center">
+            <button type="button" class="btn" id="despejoManual">Alimentar Agora</button>
+        </div>
+
+        <div class="grid">
+            <div id="despejoGrande" class="gridbox">
+                <div class="">
+                    <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/full.png?raw=true" alt="" class="img-racao" />
+                </div>
+                <p class="opcao-racao">Pote cheio(8s)</p>
             </div>
-            <div class="input-check">
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="manter-horario2" />
-                    <span class="checkmark"></span>
-                    Manter esse horário?
-                </label>
+            <div id="despejoMedio" class="gridbox">
+                <div class="">
+                    <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/medium.png?raw=true" alt="" class="img-racao" />
+                </div>
+                <p class="opcao-racao">Pote ideal(5s)</p>
+            </div>
+            <div id="despejoLeve" class="gridbox">
+                <div class="">
+                    <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/low.png?raw=true" alt="" class="img-racao" />
+                </div>
+                <p class="opcao-racao">Pote raso(2s)</p>
+            </div>
+            <div id="despejoPersonalizado" class="gridbox">
+                <div class="">
+                    <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/personalizado.png?raw=true" alt="" class="img-racao" />
+                </div>
+                <p class="opcao-racao">Quantia personalizada</p>
             </div>
         </div>
-        <div class="gridbox gridbox-horario">
-            <div class="input-horarios">
-                <input id="input-hora-horario3" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
-                <input id="input-minuto-horario3" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+
+        <p class="body-p">
+            Selecione em que horários a ração deve ser despejada para o pet.
+        </p>
+
+        <div class="d-flex justify-content-center">
+            <button type="button" id="salvar-horarios">Salvar Horários</button>
+        </div>
+
+
+        <div class="grid">
+            <div class="gridbox gridbox-horario">
+                <div class="input-horarios">
+                    <input id="input-hora-horario1" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
+                    <input id="input-minuto-horario1" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+                </div>
+                <div class="input-check">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="manter-horario1" />
+                        <span class="checkmark"></span>
+                        Manter esse horário?
+                    </label>
+                </div>
             </div>
-            <div class="input-check">
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="manter-horario3" />
-                    <span class="checkmark"></span>
-                    Manter esse horário?
-                </label>
+            <div class="gridbox gridbox-horario">
+                <div class="input-horarios">
+                    <input id="input-hora-horario2" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
+                    <input id="input-minuto-horario2" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+                </div>
+                <div class="input-check">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="manter-horario2" />
+                        <span class="checkmark"></span>
+                        Manter esse horário?
+                    </label>
+                </div>
+            </div>
+            <div class="gridbox gridbox-horario">
+                <div class="input-horarios">
+                    <input id="input-hora-horario3" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
+                    <input id="input-minuto-horario3" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+                </div>
+                <div class="input-check">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="manter-horario3" />
+                        <span class="checkmark"></span>
+                        Manter esse horário?
+                    </label>
+                </div>
+            </div>
+            <div class="gridbox gridbox-horario">
+                <div class="input-horarios">
+                    <input id="input-hora-horario4" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
+                    <input id="input-minuto-horario4" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
+                </div>
+                <div class="input-check">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" id="manter-horario4" />
+                        <span class="checkmark"></span>
+                        Manter esse horário?
+                    </label>
+                </div>
             </div>
         </div>
-        <div class="gridbox gridbox-horario">
-            <div class="input-horarios">
-                <input id="input-hora-horario4" type="number" maxlength="2" min="00" step="1" max="24" value="00" />
-                <input id="input-minuto-horario4" type="number" maxlength="2" min="00" step="1" max="59" value="00" />
-            </div>
-            <div class="input-check">
-                <label class="custom-checkbox">
-                    <input type="checkbox" id="manter-horario4" />
-                    <span class="checkmark"></span>
-                    Manter esse horário?
-                </label>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        // BOTÕES DE RAÇÃO
-        const despejoGrande = document.getElementById("despejoGrande");
-        const despejoMedio = document.getElementById("despejoMedio");
-        const despejoLeve = document.getElementById("despejoLeve");
-        const despejoPersonalizado = document.getElementById(
-            "despejoPersonalizado",
-        );
+        <script>
+          // BOTÕES DE RAÇÃO
+          const despejoGrande = document.getElementById("despejoGrande");
+          const despejoMedio = document.getElementById("despejoMedio");
+          const despejoLeve = document.getElementById("despejoLeve");
+          const despejoPersonalizado = document.getElementById("despejoPersonalizado");
 
-        let nivelDespejo = 5; // Por padrão fica no nivel medio
+          let nivelDespejo = 5; // Por padrão fica no nivel medio
 
-        despejoPersonalizado.addEventListener("click", () => {
-            const dialogDespejoPersonalizado = document.getElementById("dialogDespejoPersonalizado");
+          despejoPersonalizado.addEventListener("click", () => {
+            const dialogDespejoPersonalizado = document.getElementById(
+              "dialogDespejoPersonalizado",
+            );
             dialogDespejoPersonalizado.showModal();
-            dialogDespejoPersonalizado.style.display = "flex"
-        });
+            dialogDespejoPersonalizado.style.display = "flex";
+          });
 
-        const inputDespejoPersonalizado = document.getElementById('tempoDespejoPersonalizado');
-        const submitDespejoPersonalizado = document.getElementById('submitDespejoPersonalizado');
-        submitDespejoPersonalizado.addEventListener('click', () => {
+          const inputDespejoPersonalizado = document.getElementById(
+            "tempoDespejoPersonalizado",
+          );
+          const submitDespejoPersonalizado = document.getElementById(
+            "submitDespejoPersonalizado",
+          );
+          submitDespejoPersonalizado.addEventListener("click", () => {
             nivelDespejo = inputDespejoPersonalizado.value;
             salvarDados();
-            inputDespejoPersonalizado.value = '';
-        });
+            inputDespejoPersonalizado.value = "";
+          });
 
-        despejoGrande.addEventListener("click", () => {
+          despejoGrande.addEventListener("click", () => {
             nivelDespejo = 8;
             salvarDados();
-        });
+          });
 
-        despejoMedio.addEventListener("click", () => {
+          despejoMedio.addEventListener("click", () => {
             nivelDespejo = 5;
             salvarDados();
-        });
+          });
 
-        despejoLeve.addEventListener("click", () => {
+          despejoLeve.addEventListener("click", () => {
             nivelDespejo = 2;
             salvarDados();
-        });
+          });
 
-        // Horário 1
-        const inputHora1 = document.getElementById("input-hora-horario1");
-        const inputMinuto1 = document.getElementById(
-            "input-minuto-horario1",
-        );
-        const check1 = document.getElementById("manter-horario1");
-        let horario1 = [0, 0, false];
+          const horarios = [
+            {
+              inputHora: document.getElementById("input-hora-horario1"),
+              inputMinuto: document.getElementById("input-minuto-horario1"),
+              check: document.getElementById("manter-horario1"),
+              valores: [0, 0, false],
+            },
+            {
+              inputHora: document.getElementById("input-hora-horario2"),
+              inputMinuto: document.getElementById("input-minuto-horario2"),
+              check: document.getElementById("manter-horario2"),
+              valores: [0, 0, false],
+            },
+            {
+              inputHora: document.getElementById("input-hora-horario3"),
+              inputMinuto: document.getElementById("input-minuto-horario3"),
+              check: document.getElementById("manter-horario3"),
+              valores: [0, 0, false],
+            },
+            {
+              inputHora: document.getElementById("input-hora-horario4"),
+              inputMinuto: document.getElementById("input-minuto-horario4"),
+              check: document.getElementById("manter-horario4"),
+              valores: [0, 0, false],
+            },
+          ];
 
-        // Horário 2
-        const inputHora2 = document.getElementById("input-hora-horario2");
-        const inputMinuto2 = document.getElementById(
-            "input-minuto-horario2",
-        );
-        const check2 = document.getElementById("manter-horario2");
-        let horario2 = [0, 0, false];
+          const buttonSalvarHorarios = document.getElementById("salvar-horarios");
 
-        // Horário 3
-        const inputHora3 = document.getElementById("input-hora-horario3");
-        const inputMinuto3 = document.getElementById(
-            "input-minuto-horario3",
-        );
-        const check3 = document.getElementById("manter-horario3");
-        let horario3 = [0, 0, false];
+          buttonSalvarHorarios.addEventListener("click", salvarHorarios);
 
-        // Horário 4
-        const inputHora4 = document.getElementById("input-hora-horario4");
-        const inputMinuto4 = document.getElementById(
-            "input-minuto-horario4",
-        );
-        const check4 = document.getElementById("manter-horario4");
-        let horario4 = [0, 0, false];
+          function salvarHorarios() {
+            // Validação de todos os horários via loop
+            const todosValidos = horarios.every((h) =>
+              validarHorario(h.inputHora, h.inputMinuto),
+            );
 
-        const buttonSalvarHorarios = document.getElementById("salvar-horarios")
-
-        buttonSalvarHorarios.addEventListener('click', salvarHorarios)
-
-        function salvarHorarios() {
-
-            const valido1 = validarHorario(inputHora1, inputMinuto1);
-            const valido2 = validarHorario(inputHora2, inputMinuto2);
-            const valido3 = validarHorario(inputHora3, inputMinuto3);
-            const valido4 = validarHorario(inputHora4, inputMinuto4);
-
-            // Se qualquer horário for inválido → impede salvar
-            if (!valido1 || !valido2 || !valido3 || !valido4) {
-                alert("Ops! Tem horário inválido. Corrija antes de salvar.");
-                return;
+            if (!todosValidos) {
+              alert("Ops! Tem horário inválido. Corrija antes de salvar.");
+              return;
             }
 
-            horario1 = [inputHora1.value, inputMinuto1.value, check1.checked];
-            horario2 = [inputHora2.value, inputMinuto2.value, check2.checked];
-            horario3 = [inputHora3.value, inputMinuto3.value, check3.checked];
-            horario4 = [inputHora4.value, inputMinuto4.value, check4.checked];
+            // Atualizando valores de cada horário
+            horarios.forEach((h) => {
+              h.valores = [h.inputHora.value, h.inputMinuto.value, h.check.checked];
+            });
 
             salvarDados();
-        }
+          }
 
-
-        async function salvarDados() {
+          async function salvarDados() {
             const dados = {
-                nivelDespejo: nivelDespejo,
-                rotina: [horario1, horario2, horario3, horario4],
+              nivelDespejo: nivelDespejo,
+              rotina: [horario1, horario2, horario3, horario4],
             };
 
             // Envio de dados via POST
 
-            fetch('/salvar', {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dados)
+            fetch("/salvar", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(dados),
             })
-                .then(r => r.text())
-                .then(resp => console.log("Response: " + resp))
-                .catch(error => console.error(error));
-        }
+              .then((r) => r.text())
+              .then((resp) => console.log("Response: " + resp))
+              .catch((error) => console.error(error));
+          }
 
-        async function atualizarDados() {
-          try {
-              const resposta = await fetch('/status');
+          async function atualizarDados() {
+            try {
+              const resposta = await fetch("/status");
               const dados = await resposta.json();
 
               console.log("JSON recebido:", dados);
 
-              document.getElementById("status-racao").innerText = parseInt(100 - (dados.distancia / 28 * 100)) + "%";
-              document.getElementById("status-horario").innerText = dados.proximaRefeicao;
-              
-
-          } catch (erro) {
-            console.error("Erro ao buscar dados:", erro);
+              atualizarInformacoes(dados);
+            } catch (erro) {
+              console.error("Erro ao buscar dados:", erro);
+            }
           }
-        }
 
-        setInterval(atualizarDados, 2000);
+          function atualizarInformacoes(dados) {
+            document.getElementById("status-racao").innerText =
+              parseInt(100 - (dados.distancia / 28) * 100) + "%";
+            document.getElementById("status-horario").innerText = dados.proximaRefeicao;
 
+            dados.rotinas.forEach((rotina, i) => {
+              horarios[i].inputHora.value = rotina.hora;
+              horarios[i].inputMinuto.value = rotina.minuto;
+              horarios[i].check.checked = rotina.ativo;
 
-        // SELEÇÕES DINAMICAS 
+              const box = horarios[i].inputHora.closest(".gridbox-horario");
 
-        const potes = document.querySelectorAll("#despejoGrande, #despejoMedio, #despejoLeve, #despejoPersonalizado");
-
-        potes.forEach(pote => {
-            pote.addEventListener("click", () => {
-                potes.forEach(p => p.classList.remove("selecao"));
-                pote.classList.add("selecao");
+              if (rotina.ativo) {
+                box.classList.add("selecao");
+              } else {
+                box.classList.remove("selecao");
+              }
             });
-        });
 
+            switch (dados.nivelDespejo) {
+              case 2:
+                despejoLeve.classList.add("selecao");
+                break;
+              case 5:
+                despejoMedio.classList.add("selecao");
+                break;
+              case 8:
+                despejoGrande.classList.add("selecao");
+                break;
+              default:
+                despejoPersonalizado.classList.add("selecao");
+            }
+          }
 
-        const horariosBox = document.querySelectorAll(".gridbox-horario");
+          Window.onload = atualizarDados();
+          setInterval(atualizarDados, 2000);
 
-        horariosBox.forEach(box => {
+          let despejoManual = document.getElementById("despejoManual");
+
+          despejoManual.addEventListener("click", () => {
+            fetch("/despejoManual", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(despejoManual),
+            })
+              .then((r) => r.text())
+              .then((resp) => alert("Response: " + resp))
+              .catch((error) => console.error(error));
+          });
+
+          // SELEÇÕES DINAMICAS
+
+          const potes = document.querySelectorAll(
+            "#despejoGrande, #despejoMedio, #despejoLeve, #despejoPersonalizado",
+          );
+
+          potes.forEach((pote) => {
+            pote.addEventListener("click", () => {
+              potes.forEach((p) => p.classList.remove("selecao"));
+              pote.classList.add("selecao");
+            });
+          });
+
+          const horariosBox = document.querySelectorAll(".gridbox-horario");
+
+          horariosBox.forEach((box) => {
             const checkbox = box.querySelector("input[type='checkbox']");
 
             checkbox.addEventListener("change", () => {
-                if (checkbox.checked) {
-                    box.classList.add("selecao");
-                } else {
-                    box.classList.remove("selecao");
-                }
+              if (checkbox.checked) {
+                box.classList.add("selecao");
+              } else {
+                box.classList.remove("selecao");
+              }
             });
-        });
+          });
 
-
-        function validarHorario(inputHora, inputMinuto) {
+          function validarHorario(inputHora, inputMinuto) {
             const hora = Number(inputHora.value);
             const minuto = Number(inputMinuto.value);
 
@@ -776,50 +816,27 @@ const char index_html[] PROGMEM = R"rawliteral(
             inputMinuto.classList.remove("erro");
 
             // Valida hora
-            if (
-                inputHora.value === "" ||
-                isNaN(hora) ||
-                hora < 0 ||
-                hora > 23
-            ) {
-                inputHora.classList.add("erro");
-                valido = false;
+            if (inputHora.value === "" || isNaN(hora) || hora < 0 || hora > 23) {
+              inputHora.classList.add("erro");
+              valido = false;
             }
 
             // Valida minuto
-            if (
-                inputMinuto.value === "" ||
-                isNaN(minuto) ||
-                minuto < 0 ||
-                minuto > 59
-            ) {
-                inputMinuto.classList.add("erro");
-                valido = false;
+            if (inputMinuto.value === "" || isNaN(minuto) || minuto < 0 || minuto > 59) {
+              inputMinuto.classList.add("erro");
+              valido = false;
             }
 
             return valido;
-        }
-        const leave = document.getElementById('leave');
+          }
+          const leave = document.getElementById("leave");
 
-        leave.addEventListener('click', () =>{
+          leave.addEventListener("click", () => {
             dialogDespejoPersonalizado.close();
-            dialogDespejoPersonalizado.style.display = "none"
-        });
-        let despejoManual = document.getElementById('despejoManual');
-        despejoManual.addEventListener('click', () => {
-            fetch('/despejoManual', {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(despejoManual)
-            })
-                .then(r => r.text())
-                .then(resp => alert("Response: " + resp))
-                .catch(error => console.error(error));
-        });
+            dialogDespejoPersonalizado.style.display = "none";
+          });
+        </script>
+    </body>
 
-
-    </script>
-</body>
-
-</html>
+    </html>
 )rawliteral";

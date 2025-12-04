@@ -247,17 +247,31 @@ void handleJSON() {
     }
 
     if (doc.containsKey("nivelDespejo")) {
-    sConfig.nivel_despejo = doc["nivelDespejo"];
-}
-
-if (doc.containsKey("rotina")) {
-    for (int i = 0; i < 4; i++) {
-        rotinas[i].hora   = doc["rotina"][i][0];
-        rotinas[i].minuto = doc["rotina"][i][1];
-        rotinas[i].ativo  = doc["rotina"][i][2];
-        sConfig.rotinas[i] = rotinas[i];
+        sConfig.nivel_despejo = doc["nivelDespejo"];
+        Serial.print("Nível de despejo atualizado: ");
+        Serial.println(sConfig.nivel_despejo);
     }
-}
+
+    if (doc.containsKey("rotina")) {
+        JsonArray rotinaArray = doc["rotina"];
+        int i = 0;
+        for (JsonObject obj : rotinaArray) {
+            if (i >= 4) break;
+            
+            rotinas[i].hora = obj["hora"];
+            rotinas[i].minuto = obj["minuto"];
+            rotinas[i].ativo = obj["ativo"];
+            sConfig.rotinas[i] = rotinas[i];
+            
+            Serial.printf("Rotina %d: %02d:%02d - %s\n", 
+                i, 
+                rotinas[i].hora, 
+                rotinas[i].minuto, 
+                rotinas[i].ativo ? "Ativo" : "Inativo");
+            
+            i++;
+        }
+    }
 
     server.send(200, "text/plain", "Ok!");
 }

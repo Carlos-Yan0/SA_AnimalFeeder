@@ -52,7 +52,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 0px 5px 4px rgba(3, 7, 18, 0.03),
                 0px 12px 9px rgba(3, 7, 18, 0.05),
                 0px 20px 15px rgba(3, 7, 18, 0.06),
-                0px 32px 24px rgba(3, 7, 18, 0.08);
+                0px 32px 24px rgba(3, 7,i 18, 0.08);
         }
     
         .div-info p {
@@ -668,21 +668,21 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/full.png?raw=true"
                     alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote cheio(8s)</p>
+            <p class="opcao-racao">Pote cheio(3s)</p>
         </div>
         <div id="despejoMedio" class="gridbox">
             <div class="">
                 <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/medium.png?raw=true"
                     alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote ideal(5s)</p>
+            <p class="opcao-racao">Pote ideal(2s)</p>
         </div>
         <div id="despejoLeve" class="gridbox">
             <div class="">
                 <img src="https://github.com/Carlos-Yan0/SA_AnimalFeeder/blob/webserver-json/img/low.png?raw=true"
                     alt="" class="img-racao" />
             </div>
-            <p class="opcao-racao">Pote raso(2s)</p>
+            <p class="opcao-racao">Pote raso(1s)</p>
         </div>
         <div id="despejoPersonalizado" class="gridbox" onclick="exibirModal()">
             <div class="">
@@ -783,11 +783,11 @@ const char index_html[] PROGMEM = R"rawliteral(
                     selecionado.classList.remove('selecao');
                 }
                 
-                if (nivelDespejo == 8) {
+                if (nivelDespejo == 3) {
                     despejoGrande.classList.add('selecao');
-                } else if (nivelDespejo == 5) {
-                    despejoMedio.classList.add('selecao');
                 } else if (nivelDespejo == 2) {
+                    despejoMedio.classList.add('selecao');
+                } else if (nivelDespejo == 1) {
                     despejoLeve.classList.add('selecao');
                 } else {
                     despejoPersonalizado.classList.add('selecao');
@@ -830,7 +830,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         console.log('Dados salvos automaticamente');
     }
 
-    let nivelDespejo = 5; // Por padrão fica no nivel medio
+    let nivelDespejo = 2; // Por padrão fica no nivel medio
 
     const inputDespejoPersonalizado = document.getElementById(
         "tempoDespejoPersonalizado",
@@ -847,19 +847,19 @@ const char index_html[] PROGMEM = R"rawliteral(
     });
 
     despejoGrande.addEventListener("click", () => {
-        nivelDespejo = 8;
+        nivelDespejo = 3;
         salvarDados();
         salvarDadosAutomaticamente();
     });
 
     despejoMedio.addEventListener("click", () => {
-        nivelDespejo = 5;
+        nivelDespejo = 2;
         salvarDados();
         salvarDadosAutomaticamente();
     });
 
     despejoLeve.addEventListener("click", () => {
-        nivelDespejo = 2;
+        nivelDespejo = 1;
         salvarDados();
         salvarDadosAutomaticamente();
     });
@@ -969,12 +969,12 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     function atualizarInformacoes(dados) {
         document.getElementById("status-racao").innerText =
-            parseInt(100 - (dados.distancia / 28) * 100) + "%";
+            parseInt(100 - (dados.distancia / 32) * 100) + "%";
         document.getElementById("status-horario").innerText = dados.proximaRefeicao;
         
         // Atualizar cores baseadas na porcentagem
         const infoPorcentagem = document.getElementById("info-porcentagem");
-        const porcentagem = parseInt(100 - (dados.distancia / 28) * 100);
+        const porcentagem = parseInt(100 - (dados.distancia / 32) * 100);
         
         infoPorcentagem.classList.remove("nivel-alto", "nivel-medio", "nivel-baixo");
         

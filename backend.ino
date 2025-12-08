@@ -9,8 +9,8 @@
 // ==============================
 // === CONFIGURAÇÕES DE PINOS ===
 // ==============================
-const uint8_t PIN_TRIG    = 20;
-const uint8_t PIN_ECHO    = 21;
+const uint8_t PIN_TRIG    = 5;
+const uint8_t PIN_ECHO    = 6;
 const uint8_t PIN_BUZZER  = 22;
 const uint8_t PIN_SERVO   = 23;
 Servo servo;
@@ -45,7 +45,7 @@ struct Rotina {
 
 struct Config {
     unsigned short int nivel_despejo;
-    Rotina rotina[4];
+    Rotina rotinas[4];
 };
 
 struct Rotina rotinas[4];
@@ -98,15 +98,23 @@ long medirDistancia() {
 
   // Lê o pulso do ECHO
   long duracao = pulseIn(PIN_ECHO, HIGH);
+  Serial.print("Duração:");
+  Serial.println(duracao);
 
   // Distância em centímetros
-  long distancia = duracao * 0.034 / 2;
+  long distancia = duracao / 58;
+  Serial.print("Distância:");
+  Serial.println(distancia);
 
   return distancia;
 }
 
 
 void despejarRacao () {
+  if(!sConfig.nivel_despejo || sConfig.nivel_despejo == 0){
+    Serial.println("Despejo negado, insira um nivel de despejo");
+  }
+  else{
     Serial.print("Despejando ração. Nível de despejo: ");
     Serial.println(sConfig.nivel_despejo);
 
@@ -114,6 +122,7 @@ void despejarRacao () {
     servo.write(170);
     delay(sConfig.nivel_despejo*1000);
     servo.write(0);
+  }
 }
 
 
@@ -143,12 +152,6 @@ void somChamarAtencao() {
     }
     delay(1200);
 }
-
-
-void handleStatus() {
-  server.send(200, "text/plain");
-}
-
 // ===============================
 // ===   MÓDULO: PÁGINAS WEB   ===
 // ===============================
@@ -164,21 +167,74 @@ void handleNotFound() {
 }
 
 
-void handleDespejar() {
-    if (!sConfig.nivel_despejo) {
-        server.send(500, "text/plain", "É necessário selecionar uma opção antes do despejo imediato.");
-        return;
+String pegarProximaRotina() {
+    struct tm timeInfo;
+    getLocalTime(&timeInfo);
+
+    int horaAtual = timeInfo.tm_hour;
+    int minutoAtual = timeInfo.tm_min;
+
+    int menorDiferenca = 1440; // minutos em 24h
+    String proxima = "Nenhuma programada";
+
+    for (int i = 0; i < 4; i++) {
+        Rotina r = sConfig.rotinas[i];
+        if (!r.ativo) continue;
+
+        int minutoAtualTotal = horaAtual * 60 + minutoAtual;
+        int minutoRotinaTotal = r.hora * 60 + r.minuto;
+
+        int diff = minutoRotinaTotal - minutoAtualTotal;
+        if (diff < 0) diff += 1440;
+
+        if (diff < menorDiferenca) {
+            menorDiferenca = diff;
+
+            char buffer[6];
+            sprintf(buffer, "%02d:%02d", r.hora, r.minuto);
+            proxima = buffer;
+        }
     }
 
+    return proxima;
+}
+
+
+void handleStatus() {
+    StaticJsonDocument<300> doc;
+
+    doc["distancia"] = medirDistancia();
+    doc["nivelDespejo"] = sConfig.nivel_despejo;
+
+    // Envia a próxima alimentação
+    doc["proximaRefeicao"] = pegarProximaRotina();
+
+    JsonArray rot = doc.createNestedArray("rotinas");
+    for (int i = 0; i < 4; i++) {
+        JsonObject obj = rot.createNestedObject();
+        obj["hora"]   = sConfig.rotinas[i].hora;
+        obj["minuto"] = sConfig.rotinas[i].minuto;
+        obj["ativo"]  = sConfig.rotinas[i].ativo;
+    }
+
+    String jsonStr;
+    serializeJson(doc, jsonStr);
+
+    server.send(200, "application/json", jsonStr);
+}
+
+
+void handleDespejoManual(){
+    Serial.println("Despejo manual solicitado...");
     despejarRacao();
 }
 
 
 void handleJSON() {
-    println("Recebendo JSON via POST");
+    Serial.println("Recebendo JSON via POST");
 
     String jsonString = server.arg("plain");
-    println(jsonString);
+    Serial.println(jsonString);
 
     StaticJsonDocument<512> doc;
     DeserializationError erro = deserializeJson(doc, jsonString);
@@ -190,14 +246,31 @@ void handleJSON() {
         return;
     }
 
-    sConfig.nivel_despejo = doc["nivelDespejo"];
+    if (doc.containsKey("nivelDespejo")) {
+        sConfig.nivel_despejo = doc["nivelDespejo"];
+        Serial.print("Nível de despejo atualizado: ");
+        Serial.println(sConfig.nivel_despejo);
+    }
 
-    for (int i = 0; i < 4; i++) {
-        rotinas[i].hora   = doc["rotina"][i][0];
-        rotinas[i].minuto = doc["rotina"][i][1];
-        rotinas[i].ativo  = doc["rotina"][i][2];
-
-        sConfig.rotinas[i] = rotinas[i];
+    if (doc.containsKey("rotina")) {
+        JsonArray rotinaArray = doc["rotina"];
+        int i = 0;
+        for (JsonObject obj : rotinaArray) {
+            if (i >= 4) break;
+            
+            rotinas[i].hora = obj["hora"];
+            rotinas[i].minuto = obj["minuto"];
+            rotinas[i].ativo = obj["ativo"];
+            sConfig.rotinas[i] = rotinas[i];
+            
+            Serial.printf("Rotina %d: %02d:%02d - %s\n", 
+                i, 
+                rotinas[i].hora, 
+                rotinas[i].minuto, 
+                rotinas[i].ativo ? "Ativo" : "Inativo");
+            
+            i++;
+        }
     }
 
     server.send(200, "text/plain", "Ok!");
@@ -206,8 +279,9 @@ void handleJSON() {
 
 void configurarRotas() {
   server.on("/", handleRoot);
-  server.on("/despejar", handleDespejar);
   server.on("/salvar", handleJSON);
+  server.on("/status", handleStatus);
+  server.on("/despejoManual", handleDespejoManual);
   server.onNotFound(handleNotFound);
 }
 
@@ -254,6 +328,9 @@ void setup() {
 
   configurarRotas();
   server.begin();
+
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
 
   Serial.println("Servidor Web iniciado!");
 }
